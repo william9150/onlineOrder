@@ -1,0 +1,605 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <link
+            href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.1/dist/css/bootstrap.min.css"
+            rel="stylesheet"
+            integrity="sha384-F3w7mX95PdgyTmZZMECAngseQB83DfGTowi0iMjiWaeVhAn4FJkqJByhZMI3AhiU"
+            crossorigin="anonymous"
+        />
+        <script
+            src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.1/dist/js/bootstrap.bundle.min.js"
+            integrity="sha384-/bQdsTh/da6pkI1MST/rWKFNjaCP5gBSY4sEBT38Q/9RBh9AH40zEOg7Hlq2THRZ"
+            crossorigin="anonymous"
+        ></script>
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
+        <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+
+        <title>快取早餐</title>
+        <style>
+            /*#region ---------- 通用設定 ----------*/
+            /* 主色調設定 */
+            :root {
+                /* 主色: 橘色 */
+                --color-primary: #ff855e;
+                /* 次要色: 米黃色 */
+                --color-secondary: #ffd5a4;
+                /* 灰色 */
+                --color-gray: #666666;
+                /* 黑色 */
+                --color-dark: #303030;
+                /* 白色 */
+                --color-white: #ffffff;
+            }
+            * {
+                margin: 0;
+                padding: 0;
+            }
+            html,
+            body {
+                height: 100vh;
+            }
+            .color-primary {
+                color: var(--color-primary);
+            }
+            .color-secondary {
+                color: var(--color-secondary);
+            }
+            /* 滑鼠改手指圖案 */
+            .finger {
+                cursor: pointer;
+            }
+            .noClick {
+                pointer-events: none;
+            }
+            .text-center {
+                text-align: center;
+            }
+            /* 隱藏捲軸 */
+            ::-webkit-scrollbar {
+                display: none;
+            }
+            .header {
+                position: fixed;
+                top: 0;
+                background-color: var(--color-secondary);
+                width: 100%;
+                /* height: 72px; */
+                z-index: 100;
+                font-size: 20px;
+            }
+            .main-content {
+                min-height: 100vh;
+                max-height: 100vh;
+                /* max-width: 100vh; */
+                padding-top: 72px;
+                padding-bottom: 72px;
+                overflow-y: hidden;
+                overflow-x: hidden;
+                position: relative;
+            }
+            .footer {
+                position: fixed;
+                bottom: 0;
+                background-color: var(--color-secondary);
+                width: 100%;
+                /* height: 72px; */
+                z-index: 100;
+            }
+            /*#endregion 通用設定*/
+
+            /*#region  ---------- 標題bar ----------*/
+
+            .logo {
+                width: 280px;
+            }
+            a.grayLink {
+                text-decoration: none;
+                color: var(--color-gray);
+            }
+            a.grayLink:hover {
+                color: var(--color-dark);
+                font-weight: bold;
+            }
+
+            /*#endregion 標題bar*/
+
+            /*#region ---------- Tag_bar ----------*/
+            .tagNav {
+            }
+
+            .tagArea {
+                /* gap: 40px; */
+                overflow-x: auto;
+                /* overflow-y: hidden; */
+            }
+
+            ul.tagList {
+                list-style-type: none;
+                margin: 0;
+                padding: 0;
+                display: flex;
+                gap: 20px;
+            }
+
+            .btn-cat-tag {
+                /* box-sizing: border-box; */
+                padding: 0.5rem 3rem;
+                height: 40px;
+                border: 2px solid var(--color-primary);
+                filter: drop-shadow(0px 4px 4px rgba(0, 0, 0, 0.2));
+                border-radius: 8px;
+                white-space: nowrap;
+            }
+            .btn-check:checked + .btn-cat-tag {
+                background: var(--color-primary);
+                box-shadow: 0px 0px 2px rgba(0, 0, 0, 0.2);
+                color: var(--color-white);
+            }
+
+            /*#endregion Tag_bar*/
+
+            /*#region ---------- Menu ----------*/
+            .menu {
+                height: 80vh;
+                overflow-y: auto;
+
+                /* padding-bottom: 0px; */
+            }
+            .body::-webkit-scrollbar {
+                display: none;
+            }
+            .catTitle {
+                color: var(--color-primary);
+                text-align: center;
+            }
+            .catTitle span {
+                border-bottom: 1px solid var(--color-primary);
+            }
+            .foodCard {
+                display: flex;
+                box-sizing: border-box;
+                padding: 12px 16px;
+                gap: 8px;
+
+                width: 100%;
+                /* height: 194px; */
+
+                background: var(--color-white);
+                /* secondary */
+
+                border: 1px solid var(--color-secondary);
+                box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.2);
+                border-radius: 8px;
+            }
+            .foodCard:hover {
+                background: var(--color-secondary);
+                border: 1px solid var(--color-primary);
+            }
+            .foodCard.soldout {
+                color: var(--color-gray);
+                background: var(--color-dark);
+                border: 1px solid #ffd5a4;
+                filter: blur(1px);
+                pointer-events: none;
+            }
+            .foodCard.soldout:after {
+                content: "已售完";
+                position: absolute;
+                top: 50%;
+                left: 30%;
+                transform: translate(-50%, -50%);
+                color: var(--color-white);
+                font-size: 25px;
+                font-weight: bold;
+                z-index: 10;
+            }
+            .menuCardImg {
+                width: 168px;
+                height: 168px;
+                object-fit: cover;
+                border-radius: 8px;
+            }
+
+            /*#endregion Menu*/
+
+            /*#region ---------- Footer ----------*/
+
+            .btn-chkOrder {
+                color: var(--color-white);
+                padding: 8px 56px;
+                width: 196px;
+                height: 40px;
+                background: var(--color-primary);
+                box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.2);
+                border-radius: 8px;
+            }
+
+            .border-left {
+                border-left: 4px solid var(--color-primary);
+            }
+
+            /*#endregion Footer*/
+
+            /*#region ---------- Modal ----------*/
+            .modal.fade {
+                transition: opacity 0.2s linear;
+            }
+            .btn-addToCart {
+                /* display: flex; */
+                color: var(--color-white);
+                width: 100%;
+                padding: 0.25rem 1rem;
+                background: var(--color-primary);
+                box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.2);
+                border-radius: 8px;
+                margin: 0;
+            }
+            .modalFoodImg {
+                text-align: center;
+                width: 100%;
+                height: 225px;
+                object-fit: cover;
+                border-radius: 8px;
+            }
+
+            .btn-minus,
+            .btn-add {
+                border-radius: 50%;
+                border: 1px solid var(--color-primary);
+                background: var(--color-white);
+                color: var(--color-primary);
+                /* font-size: 20px; */
+                font-weight: bold;
+                box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.2);
+            }
+            .cartfoodCard {
+                display: flex;
+                box-sizing: border-box;
+                padding: 12px 16px;
+                gap: 8px;
+
+                width: 100%;
+                /* height: 194px; */
+
+                background: var(--color-white);
+                border: 1px solid var(--color-secondary);
+                box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.2);
+                border-radius: 8px;
+            }
+            .cartEdit,
+            .cartDelete {
+                border-radius: 50%;
+                border: 1px solid var(--color-primary);
+                background: var(--color-white);
+                color: var(--color-primary);
+                /* font-size: 20px; */
+                font-weight: bold;
+                box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.2);
+            }
+            .cartEdit:hover,
+            .cartDelete:hover {
+                background: var(--color-primary);
+                color: var(--color-white);
+            }
+
+            .login-input {
+                width: 80%;
+                height: 40px;
+                padding: 0 16px;
+                border: 1px solid var(--color-secondary);
+                border-radius: 8px;
+                box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.2);
+            }
+            .btn-login {
+                width: 80%;
+                height: 40px;
+                padding: 0 16px;
+                border: 1px solid var(--color-secondary);
+                border-radius: 8px;
+                box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.2);
+                background: var(--color-primary);
+                color: var(--color-white);
+            }
+            .errMsg {
+                color: red;
+                text-align: left;
+            }
+            /*#endregion Modal*/
+
+            /*#region ---------- NAN ----------*/
+            /*#endregion NAN*/
+            .announce {
+                background-image: url(./Img/logo.png);
+            }
+        </style>
+    </head>
+    <body>
+        <!-- 主頁 -->
+        <div class="">
+            <!-- 最上方標題導覽列 -->
+            <div class="header">
+                <nav class="navbar navbar-expand-md navbar-light *bg-c-secondary">
+                    <div class="container *container-fluid">
+                        <a class="navbar-brand" href="#"><img class="logo" src="./Img/logo.svg" style="width: 80%" alt="" /></a>
+
+                        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent">
+                            <span class="navbar-toggler-icon"></span>
+                        </button>
+                        <div class="collapse navbar-collapse" id="navbarSupportedContent">
+                            <ul class="navbar-nav ms-auto mb-2 mb-lg-0" id="navList">
+                                <!-- <li class="nav-item" id="navLoginArea">
+                                    <a class="nav-link" href="" id="">早安! 薯餅</a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link" href="">活動快訊</a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link" href="">訂單查詢</a>
+                                </li>
+                                <li class="nav-item" id="navLoginArea">
+                                    <a class="nav-link" href="">登出</a>
+                                </li> -->
+                            </ul>
+                        </div>
+                    </div>
+                </nav>
+            </div>
+            <!-- 中間主要內容 -->
+            <div class="main-content">
+                <!-- 品項選單(希望固定) -->
+                <div class="container">
+                    <div class="d-flex py-2 justify-content-center">
+                        <!-- <div class="leftArrow"><img src="./Img/PC/Arrow circle up.png" alt="" /></div> -->
+                        <div class="tagArea mx-3">
+                            <ul class="tagList">
+                                <li>
+                                    <input type="radio" class="btn-check" name="分類標籤" id="tag全部" value="全部" autocomplete="off" checked />
+                                    <label class="btn btn-cat-tag" for="tag全部">全部</label>
+                                </li>
+                                <li>
+                                    <input type="radio" class="btn-check" name="分類標籤" id="tag蛋餅" value="蛋餅" autocomplete="off" />
+                                    <label class="btn btn-cat-tag" for="tag蛋餅">蛋餅</label>
+                                </li>
+                                <li>
+                                    <input type="radio" class="btn-check" name="分類標籤" id="tag吐司" value="吐司" autocomplete="off" />
+                                    <label class="btn btn-cat-tag" for="tag吐司">吐司</label>
+                                </li>
+                                <li>
+                                    <input type="radio" class="btn-check" name="分類標籤" id="tag漢堡" value="漢堡" autocomplete="off" />
+                                    <label class="btn btn-cat-tag" for="tag漢堡">漢堡</label>
+                                </li>
+                                <li>
+                                    <input type="radio" class="btn-check" name="分類標籤" id="tag沙拉" value="沙拉" autocomplete="off" />
+                                    <label class="btn btn-cat-tag" for="tag沙拉">沙拉</label>
+                                </li>
+                                <li>
+                                    <input type="radio" class="btn-check" name="分類標籤" id="tag點心" value="點心" autocomplete="off" />
+                                    <label class="btn btn-cat-tag" for="tag點心">點心</label>
+                                </li>
+                                <li>
+                                    <input type="radio" class="btn-check" name="分類標籤" id="tag飲品" value="飲品" autocomplete="off" />
+                                    <label class="btn btn-cat-tag" for="tag飲品">飲品</label>
+                                </li>
+                            </ul>
+                        </div>
+                        <!-- <div class="rightArrow"><img src="./Img/PC/Arrow circle down.png" alt="" /></div> -->
+                    </div>
+                </div>
+
+                <!-- 廣告和菜單(可捲動區塊) -->
+                <div class="">
+                    <!-- 廣告 -->
+                    <div class="announce"></div>
+                    <!-- 菜單 -->
+                    <div class="menu container" id="menu"></div>
+                </div>
+            </div>
+            <!-- 頁尾 -->
+            <div class="footer py-2">
+                <div class="container">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div class="border-left fw-bolder">
+                            <span class="ms-2">訂單小計</span>
+                            <span class="text-danger" id="footerTotalPrice">$0</span>
+                        </div>
+                        <div>
+                            <button class="btn btn-chkOrder" onclick="showCartModal()">查看訂單</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- Modal擺放區塊 -->
+        <div>
+            <!-- 品項Modal -->
+            <div class="modal fade" id="productModal" tabindex="-1">
+                <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+                    <div class="modal-content">
+                        <div class="modal-header d-block">
+                            <img src="./Img/PC/image-1.png" alt="" />
+                            <button type="button" class="btn-close float-end float" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                            <!-- 介紹 -->
+                            <div>
+                                <h5 class="fw-bolder">容顏花生起司牛肉堡</h5>
+                                <p class="h6 fw-light">巧克力花生醬+起司</p>
+                                <p class="h6 fw-light">人氣推薦</p>
+                                <p class="h5">$85</p>
+                            </div>
+                            <!-- 選項 -->
+                            <div>
+                                Lorem ipsum dolor sit amet consectetur, adipisicing elit. Adipisci obcaecati possimus rem perspiciatis facilis, praesentium
+                            </div>
+
+                            <hr />
+                            <!-- 備註 -->
+                            <div>
+                                <p class="h6">備註</p>
+                                <textarea class="form-control" id="exampleFormControlTextarea1" rows="3"></textarea>
+                            </div>
+                        </div>
+                        <div class="modal-footer flex-column">
+                            <!-- 數量 -->
+
+                            <div class="d-flex align-items-center">
+                                <button class="btn rounded-circle btn-sm btn-add"><i class="fa-solid fa-minus small"></i></button>
+                                <span class="mx-4">1</span>
+                                <button class="btn rounded-circle btn-sm btn-minus"><i class="fa-solid fa-plus small"></i></button>
+                            </div>
+
+                            <!-- 加入購物車 -->
+                            <button type="button" class="btn btn-addToCart my-1" data-bs-dismiss="modal">
+                                <span class=""> 加入購物車</span>
+                                <span class="">($85)</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- 購物車Modal -->
+            <div class="modal fade" id="cartModal" tabindex="-1">
+                <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+                    <div class="modal-content">
+                        <div class="modal-header d-block pb-1">
+                            <button type="button" class="btn-close float-end float" data-bs-dismiss="modal" aria-label="Close"></button>
+                            <h5 class="text-center fw-bold">購物車資訊</h5>
+                        </div>
+                        <div class="modal-body"></div>
+                        <div class="modal-footer flex-column">
+                            <!-- 加入購物車 -->
+                            <button type="button" class="btn btn-addToCart my-1" onclick="submitCart()">
+                                <span class=""> 送出訂單</span>
+                                <span id="tempCartTotalPrice">($275)</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- Login Modal -->
+            <div class="modal fade" id="loginModal" tabindex="-1">
+                <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+                    <div class="modal-content">
+                        <div class="modal-header border-0 pb-1">
+                            <button type="button" class="btn-close float-end float" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                            <div class="d-flex flex-column align-items-center gap-3">
+                                <p class="h4 fw-bold">會員</p>
+                                <input type="email" class="login-input" placeholder="Email" id="loginEmail" />
+                                <input type="password" class="login-input" placeholder="Password" id="loginPassword" />
+                                <button class="btn btn-login" onclick="btnLogin()">登入</button>
+                                <p>還沒成為會員? <span class="color-primary border-bottom">註冊</span></p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- 歷史訂單Modal -->
+            <div class="modal fade" id="historyOrderModal" tabindex="-1">
+                <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+                    <div class="modal-content">
+                        <div class="modal-header d-block pb-1">
+                            <button type="button" class="btn-close float-end float" data-bs-dismiss="modal" aria-label="Close"></button>
+                            <h5 class="text-center fw-bold">歷史訂單</h5>
+                        </div>
+                        <div class="modal-body">
+                            <div class="cartfoodCard d-flex mb-2" data-id="p022" data-price="35">
+                                <div>
+                                    <div class="">
+                                        <span class="h6 fw-bolder">訂單日期</span>
+                                        <span class="fw-light">2022-11-28 11:54:43</span>
+                                    </div>
+                                    <div>
+                                        <span class="h6 fw-bolder">訂單編號</span>
+                                        <span class="fw-light">OD1669607683898</span>
+                                    </div>
+                                </div>
+                                <div class="d-flex flex-column ms-auto">
+                                    <span>製作中</span>
+                                    <span class="text-danger fw-bold ms-auto">$35</span>
+                                </div>
+                            </div>
+                            <div class="cartfoodCard d-flex mb-2" data-id="p022" data-price="35">
+                                <div>
+                                    <div class="">
+                                        <span class="h6 fw-bolder">訂單日期</span>
+                                        <span class="fw-light">2022-11-28 11:54:43</span>
+                                    </div>
+                                    <div>
+                                        <span class="h6 fw-bolder">訂單編號</span>
+                                        <span class="fw-light">OD1669607683898</span>
+                                    </div>
+                                </div>
+                                <div class="d-flex flex-column ms-auto">
+                                    <span>製作中</span>
+                                    <span class="text-danger fw-bold ms-auto">$35</span>
+                                </div>
+                            </div>
+                            <div class="cartfoodCard d-flex mb-2" data-id="p022" data-price="35">
+                                <div>
+                                    <div class="">
+                                        <span class="h6 fw-bolder">訂單日期</span>
+                                        <span class="fw-light">2022-11-28 11:54:43</span>
+                                    </div>
+                                    <div>
+                                        <span class="h6 fw-bolder">訂單編號</span>
+                                        <span class="fw-light">OD1669607683898</span>
+                                    </div>
+                                </div>
+                                <div class="d-flex flex-column ms-auto">
+                                    <span>製作中</span>
+                                    <span class="text-danger fw-bold ms-auto">$35</span>
+                                </div>
+                            </div>
+                            <div class="cartfoodCard d-flex mb-2" data-id="p022" data-price="35">
+                                <div>
+                                    <div class="">
+                                        <span class="h6 fw-bolder">訂單日期</span>
+                                        <span class="fw-light">2022-11-28 11:54:43</span>
+                                    </div>
+                                    <div>
+                                        <span class="h6 fw-bolder">訂單編號</span>
+                                        <span class="fw-light">OD1669607683898</span>
+                                    </div>
+                                </div>
+                                <div class="d-flex flex-column ms-auto">
+                                    <span>製作中</span>
+                                    <span class="text-danger fw-bold ms-auto">$35</span>
+                                </div>
+                            </div>
+                            <div class="cartfoodCard d-flex mb-2" data-id="p022" data-price="35">
+                                <div>
+                                    <div class="">
+                                        <span class="h6 fw-bolder">訂單日期</span>
+                                        <span class="fw-light">2022-11-28 11:54:43</span>
+                                    </div>
+                                    <div>
+                                        <span class="h6 fw-bolder">訂單編號</span>
+                                        <span class="fw-light">OD1669607683898</span>
+                                    </div>
+                                </div>
+                                <div class="d-flex flex-column ms-auto">
+                                    <span>製作中</span>
+                                    <span class="text-danger fw-bold ms-auto">$35</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="modal-footer flex-column border-0"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <script src="./Js/all.js"></script>
+        <script>
+            $(function () {
+                $("#historyOrderModal").modal("show");
+            });
+            // open productModal modal
+        </script>
+    </body>
+</html>
