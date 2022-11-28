@@ -407,7 +407,7 @@
                             <span class="text-danger" id="footerTotalPrice">$0</span>
                         </div>
                         <div>
-                            <button class="btn btn-chkOrder" onclick="showCartModal()">查看訂單</button>
+                            <button class="btn btn-chkOrder" onclick="showCartModal()">查看購物車</button>
                         </div>
                     </div>
                 </div>
@@ -500,7 +500,7 @@
                 </div>
             </div>
             <!-- 歷史訂單Modal -->
-            <div class="modal fade" id="historyOrderModal" tabindex="-1">
+            <div class="modal fade" id="userOrdersModal" tabindex="-1">
                 <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
                     <div class="modal-content">
                         <div class="modal-header d-block pb-1">
@@ -508,7 +508,13 @@
                             <h5 class="text-center fw-bold">歷史訂單</h5>
                         </div>
                         <div class="modal-body">
-                            <div class="cartfoodCard d-flex mb-2" data-id="p022" data-price="35">
+                            <div
+                                class="cartfoodCard d-flex mb-2"
+                                data-order-id="p022"
+                                data-order-price="35"
+                                data-bs-toggle="collapse"
+                                data-bs-target="#collapseOrder-OD111"
+                            >
                                 <div>
                                     <div class="">
                                         <span class="h6 fw-bolder">訂單日期</span>
@@ -524,6 +530,17 @@
                                     <span class="text-danger fw-bold ms-auto">$35</span>
                                 </div>
                             </div>
+                            <div class="collapse px-3 pt-0 pb-3" id="collapseOrder-OD111">
+                                <div class="cartfoodCard d-block mb-2" data-id="p016" data-price="35">
+                                    <span class="h6 fw-bolder text-start">起司蛋餅</span>
+
+                                    <div class="d-flex justify-content-between">
+                                        <span class="fw-light">$35 / 3份</span>
+                                        <div class="text-danger fw-bold">$105</div>
+                                    </div>
+                                </div>
+                            </div>
+
                             <div class="cartfoodCard d-flex mb-2" data-id="p022" data-price="35">
                                 <div>
                                     <div class="">
@@ -597,7 +614,7 @@
         <script src="./Js/all.js"></script>
         <script>
             $(function () {
-                $("#historyOrderModal").modal("show");
+                //$("#userOrdersModal").modal("show");
             });
             // open productModal modal
         </script>

@@ -4,6 +4,7 @@
 //#region ------------------------------ 全域變數 ------------------------------
 let theMenu = []; //存放菜單的陣列(sort by catId)
 let theProducts = []; //存放菜單的陣列(sort by productId)
+let theUserOrders = [];
 const urlDomain = 'http://localhost:3000';
 // const urlDomain = 'https://json-server-vercel-a.vercel.app';
 
@@ -182,7 +183,7 @@ function getDataFromLocalStorage(key) {
 function deleteDataFromLocalStorage(key) {
     localStorage.removeItem(key);
 }
-//switch modal
+//switch modal 關閉現在的modal，開啟前一次的modal
 function switchModal() {
     const returnModal = getDataFromLocalStorage('returnModal');
     $(".modal").modal('hide');
@@ -223,9 +224,9 @@ function getUserOrders() {
     const config = { headers: { 'Authorization': `Bearer ${token}` } }
     axios.get(`${urlDomain}/600/orders?userId=${userId}`, config)
         .then(function (response) {
-            let historyOrders = response.data;
-            console.log(historyOrders);
-            //renderOrderModal();
+            theUserOrders = response.data.reverse();
+            //顛倒順序theUserOrders.reverse();
+            renderUserOrdersModal();
         }).catch(function (error) {
             console.log('error', error);
         });
@@ -425,22 +426,53 @@ function renderCartModal() {
     $("#cartModal .modal-body").html(content);
     $("#tempCartTotalPrice").html(`($${countCartTotalPrice()})`);
 }
-//渲染歷史訂單Modal
-function renderHistoryModal(historyOrders) {
-
+//渲染歷史訂單Modal //todo
+function renderUserOrdersModal(historyOrders) {
     let contentHistoryList = [];
-    if (historyOrder.length > 0) {
-        contentHistoryList = historyList.map((historyObj, index) => {
-            const { id, name, price, qty, comment, status } = historyObj;
-            return `
-        <div class="cartfoodCard d-block mb-2" data-id="${id}" data-price="${price}">
-            <div class="d-flex justify-content-between mb-2">
-                <span class="h6 fw-bolder">${name}</span>   `
+    let contents = [];
+    theUserOrders.forEach(orderObj => {
+        let { id, userId, name, phone, comment, price, orderDate, orderTime, isPaid, isDone, details } = orderObj;
+        let detailContent = details.map(foodObj => {
+            let str = `
+            <div class="cartfoodCard d-block mb-2" data-id="${foodObj.id}" data-price="${foodObj.price}">
+                <span class="h6 fw-bolder text-start">${foodObj.name}</span>
+                <div class="d-flex justify-content-between">
+                    <span class="fw-light">${foodObj.comment ? (foodObj.comment + " / ") : ''}${foodObj.qty}份</span>
+                    <div class="text-danger fw-bold">$${foodObj.price * foodObj.qty}</div>
+                </div>
+            </div>`
+            return str;
         })
-    }
+        let content = `
+        <div
+            class="cartfoodCard d-flex mb-2"
+            data-order-id="${id}"
+            data-bs-toggle="collapse"
+            data-bs-target="#collapseOrder-${id}"
+        >
+            <div>
+                <div class="">
+                    <span class="h6 fw-bolder">訂單日期</span>
+                    <span class="fw-light">${orderDate} ${orderTime}</span>
+                </div>
+                <div>
+                    <span class="h6 fw-bolder">訂單編號</span>
+                    <span class="fw-light">${id}</span>
+                </div>
+            </div>
+            <div class="d-flex flex-column ms-auto">
+                <span>${isDone ? '已完成' : '製作中'}</span>
+                <span class="text-danger fw-bold ms-auto">$${price}</span>
+            </div>
+        </div>
+        <div class="collapse px-3 pt-0 pb-3" id="collapseOrder-${id}">
+            ${detailContent.join("")}
+        </div>`
+        contents.push(content);
+    })
+    $("#userOrdersModal .modal-body").html(contents.join(""));
+    $('#userOrdersModal').modal('show');
 }
-
-
 //渲染NAV清單
 function renderNavList() {
     let isLogin = getDataFromLocalStorage('_token') ? true : false;
@@ -462,7 +494,7 @@ function renderNavList() {
         <span class="nav-link finger" href="">活動快訊</span>
     </li>
     <li class="nav-item">
-        <span class="nav-link finger" href="">訂單查詢</span>
+        ${isLogin ? '<span class="nav-link finger" onclick="openUsersOrderModal()">訂單查詢</span>' : ''}
     </li>
     <li class="nav-item" id="">
         ${loginoutContent}
@@ -471,7 +503,16 @@ function renderNavList() {
     $("#navList").html(content);
 }
 
+//打開userOrdersModal
+function openUsersOrderModal() {
+    getUserOrders();
+
+
+}
+
 //#endregion
+
+//#region ------------------------------ 其他 ------------------------------
 
 // 取得當前時間(2022-01-01 00:00:00)
 function getTimeNow() {
@@ -486,3 +527,4 @@ Number.prototype.AddZero = function (b, c) {
     return l > 0 ? new Array(l).join(c || '0') + this : this;
 };
 
+//#endregion
