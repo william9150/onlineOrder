@@ -45,6 +45,10 @@ function showLoginModal() {
     renderLoginModal();
     $('#loginModal').modal('show');
 }
+//彈出廣告Modal
+function showAdModal() {
+    $('#adModal').modal('show');
+}
 //篩選菜單
 function filterMenu() {
     const cat = $("input[name='分類標籤']:checked").val();
@@ -255,7 +259,6 @@ function switchModal() {
 function getMenu() {
     axios.get(`${urlDomain}/cats?_embed=products`).then(function (response) {
         theMenu = response.data;
-        console.log(theMenu)
         theProducts = theMenu.reduce((a, b) => [...a, ...b.products], [])
         renderMenu();
     }).catch(function (error) {
@@ -533,7 +536,7 @@ function renderNavList() {
     let content = `
     ${userNameContent}
     <li class="nav-item">
-        <span class="nav-link finger" href="">活動快訊</span>
+        <span class="nav-link finger" onclick="showAdModal()">活動快訊</span>
     </li>
     <li class="nav-item">
         ${isLogin ? '<span class="nav-link finger" onclick="showUserOrderModal()">訂單查詢</span>' : ''}

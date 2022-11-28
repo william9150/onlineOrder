@@ -313,6 +313,28 @@
                 min-height: 70vh;
                 max-height: 90vh;
             }
+            .adBackground {
+                width: 100%;
+                /* height: 70vh; */
+                background-image: url("./img/PC/banner.png");
+                background-repeat: no-repeat;
+                background-size: cover;
+                /* background-position: center; */
+                /* position: relative; */
+            }
+
+            @media (max-width: 992px) {
+                .adBackground {
+                    background-image: url("./img/Mobile/banner.png");
+                    min-height: 676px;
+                }
+            }
+            .adsContent {
+            }
+            .adsImg img {
+                width: 100%;
+                object-fit: contain;
+            }
             /*#endregion Modal*/
 
             /*#region ---------- NAN ----------*/
@@ -345,7 +367,7 @@
                                 <li class="nav-item">
                                     <a class="nav-link" href="">訂單查詢</a>
                                 </li>
-                                <li class="nav-item" id="navLoginArea">
+                                <li class="nav-item" id="">
                                     <a class="nav-link" href="">登出</a>
                                 </li> -->
                             </ul>
@@ -607,11 +629,35 @@
                     </div>
                 </div>
             </div>
+            <!-- 廣告Modal -->
+            <div class="modal fade" id="adModal" tabindex="-1">
+                <div class="modal-dialog modal-dialog-centered modal-xl">
+                    <div class="modal-content adBackground">
+                        <div class="modal-header border-0 pb-0">
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body d-flex flex-wrap border-0 pt-0">
+                            <div
+                                class="d-flex flex-column justify-content-center align-items-center align-items-lg-end col-12 col-lg-6 adsContent g-5 fw-bold fs-3"
+                            >
+                                <span class="">Catch Breakfast</span>
+                                <span class="">快取早餐 歡慶上線</span>
+                                <span>即日起至12/31</span>
+                                <span>自備環保餐具</span>
+                                <span>飲料無限暢飲</span>
+                            </div>
+                            <div class="col-12 col-lg-6 adsImg">
+                                <img src="./Img/PC/image-9.png" alt="" />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
         <script src="./Js/all.js"></script>
         <script>
             $(function () {
-                //$("#userOrdersModal").modal("show");
+                $("#adModal").modal("show");
             });
             // open productModal modal
         </script>
