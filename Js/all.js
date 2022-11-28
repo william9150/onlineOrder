@@ -5,8 +5,8 @@
 let theMenu = []; //存放菜單的陣列(sort by catId)
 let theProducts = []; //存放菜單的陣列(sort by productId)
 let theUserOrders = [];
-const urlDomain = 'http://localhost:3000';
-// const urlDomain = 'https://json-server-vercel-a.vercel.app';
+// const urlDomain = 'http://localhost:3000';
+const urlDomain = 'https://json-server-vercel-a.vercel.app';
 
 //#endregion
 
@@ -35,6 +35,10 @@ function showProductModal(catId, productId) {
 function showCartModal() {
     renderCartModal();
     $('#cartModal').modal('show');
+}
+//彈出歷史訂單Modal
+function showUserOrderModal() {
+    getUserOrders();
 }
 //篩選菜單
 function filterMenu() {
@@ -98,6 +102,7 @@ function submitCart() {
         price: countCartTotalPrice(),
         orderDate: getTimeNow().split(" ")[0],
         orderTime: getTimeNow().split(" ")[1],
+        takeWay: $('#cartTakeWay input:checked').val(),
         isPaid: false,
         isDone: false,
         details: carts,
@@ -154,6 +159,23 @@ function editCartProduct(productId, productIndex) {
     $('#productModal').modal('show');
 
 }
+//demo Input 填入
+function demoInput(demoName) {
+    switch (demoName) {
+        case '小明':
+            $('#loginEmail').val('ming@gmail.com');
+            $('#loginPassword').val('abc123');
+            break;
+        case '阿姨':
+            $('#loginEmail').val('anti@gmail.com');
+            $('#loginPassword').val('iamboss');
+            break;
+        default:
+            $('#loginEmail').val('');
+            $('#loginPassword').val('');
+            break;
+    }
+}
 
 //check login info
 function btnLogin(callbackModal = "") {
@@ -169,6 +191,24 @@ function btnLogin(callbackModal = "") {
     // } else {
     //     alert('登入失敗');
     // }
+}
+//btnRegister
+function btnRegister() {
+    const name = $('#loginName').val();
+    const phone = $('#loginPhone').val();
+    const email = $('#loginEmail').val();
+    const password = $('#loginPassword').val();
+    if (name == '' || phone == '' || email == '' || password == '') {
+        alert('請輸入完整資料');
+        return;
+    }
+    let model = {
+        password: password,
+        name: name,
+        email: email,
+        phone: phone,
+    }
+    register(model);
 }
 
 //save data in local storage
@@ -229,6 +269,8 @@ function getUserOrders() {
             renderUserOrdersModal();
         }).catch(function (error) {
             console.log('error', error);
+            theUserOrders = [];
+            renderUserOrdersModal();
         });
 }
 //login
@@ -251,27 +293,19 @@ function logout() {
     renderNavList();
 }
 //register
-function register() {
-    const password = $('#password').val();
-    const name = $('#name').val();
-    const email = $('#email').val();
-    const phone = $('#phone').val();
-    axios.post(`${urlDomain}/register`, {
-        password: password,
-        name: name,
-        email: email,
-        phone: phone,
-    }).then(function (response) {
-        console.log(response);
-        if (response.data.success) {
-            alert('註冊成功');
+function register(model) {
+
+    axios.post(`${urlDomain}/register`, model)
+        .then(function (response) {
+            console.log(response);
+            saveDataToLocalStorage('_token', response.data.accessToken);
+            saveDataToLocalStorage('_user', response.data.user);
             $('#loginModal').modal('hide');
-        } else {
-            alert('註冊失敗');
-        }
-    }).catch(function (error) {
-        console.log('error', error);
-    });
+            renderNavList();
+            switchModal();
+        }).catch(function (error) {
+            console.log('error', error);
+        });
 }
 
 //post cart order with token
@@ -408,7 +442,7 @@ function renderCartModal() {
     <hr class="my-2" />
     ${contentCartList.join("")}
 </div>
-<div name="取餐方式" class="mb-3">
+<div name="取餐方式" class="mb-3" id="cartTakeWay">
     <h5 class="fw-bolder">取餐方式</h5>
     <hr class="my-2"/>
     <input type="radio" class="btn-check" name="取餐方式" id="tag外帶" value="外帶" autocomplete="off" checked />
@@ -427,13 +461,14 @@ function renderCartModal() {
     $("#tempCartTotalPrice").html(`($${countCartTotalPrice()})`);
 }
 //渲染歷史訂單Modal //todo
-function renderUserOrdersModal(historyOrders) {
-    let contentHistoryList = [];
+function renderUserOrdersModal() {
+
     let contents = [];
-    theUserOrders.forEach(orderObj => {
-        let { id, userId, name, phone, comment, price, orderDate, orderTime, isPaid, isDone, details } = orderObj;
-        let detailContent = details.map(foodObj => {
-            let str = `
+    if (theUserOrders.length > 0) {
+        theUserOrders.forEach(orderObj => {
+            let { id, userId, name, phone, comment, price, orderDate, orderTime, isPaid, isDone, details } = orderObj;
+            let detailContent = details.map(foodObj => {
+                let str = `
             <div class="cartfoodCard d-block mb-2" data-id="${foodObj.id}" data-price="${foodObj.price}">
                 <span class="h6 fw-bolder text-start">${foodObj.name}</span>
                 <div class="d-flex justify-content-between">
@@ -441,9 +476,9 @@ function renderUserOrdersModal(historyOrders) {
                     <div class="text-danger fw-bold">$${foodObj.price * foodObj.qty}</div>
                 </div>
             </div>`
-            return str;
-        })
-        let content = `
+                return str;
+            })
+            let content = `
         <div
             class="cartfoodCard d-flex mb-2"
             data-order-id="${id}"
@@ -468,8 +503,11 @@ function renderUserOrdersModal(historyOrders) {
         <div class="collapse px-3 pt-0 pb-3" id="collapseOrder-${id}">
             ${detailContent.join("")}
         </div>`
-        contents.push(content);
-    })
+            contents.push(content);
+        })
+    } else {
+        contents.push(`<div class="text-center">沒有訂單</div>`)
+    }
     $("#userOrdersModal .modal-body").html(contents.join(""));
     $('#userOrdersModal').modal('show');
 }
@@ -477,7 +515,7 @@ function renderUserOrdersModal(historyOrders) {
 function renderNavList() {
     let isLogin = getDataFromLocalStorage('_token') ? true : false;
     let userNameContent = "";
-    let loginoutContent = `<span class="nav-link finger" href="" data-bs-toggle="modal" data-bs-target="#loginModal">登入/註冊</span>`;
+    let loginoutContent = `<span class="nav-link finger" href="" onclick="renderLoginModal('login')">登入/註冊</span>`;
     if (isLogin) {
         userNameContent = `
         <li class="nav-item" id="navLoginArea">
@@ -494,7 +532,7 @@ function renderNavList() {
         <span class="nav-link finger" href="">活動快訊</span>
     </li>
     <li class="nav-item">
-        ${isLogin ? '<span class="nav-link finger" onclick="openUsersOrderModal()">訂單查詢</span>' : ''}
+        ${isLogin ? '<span class="nav-link finger" onclick="showUserOrderModal()">訂單查詢</span>' : ''}
     </li>
     <li class="nav-item" id="">
         ${loginoutContent}
@@ -502,13 +540,45 @@ function renderNavList() {
     `;
     $("#navList").html(content);
 }
+//渲染loginModal
+function renderLoginModal(method = 'login') {
+    let content = '';
+    if (method == 'login') {
+        content = `
+    <div class="d-flex flex-column align-items-center gap-3">
+        <p class="h4 fw-bold">會員</p>
+        <input type="email" class="login-input" placeholder="Email" id="loginEmail" />
+        <input type="password" class="login-input" placeholder="Password" id="loginPassword" />
+        <button class="btn btn-login" onclick="btnLogin()">登入</button>
 
-//打開userOrdersModal
-function openUsersOrderModal() {
-    getUserOrders();
+        <p>還沒成為會員? <span class="color-primary border-bottom finger" onclick="renderLoginModal('register')">註冊</span></p>
+        <p class="fw-light">
+            <span>Demo: </span>
+            <span class="ms-2 finger" onclick="demoInput('小明')">顧客-小明</span>
+            <span class="ms-2 finger" onclick="demoInput('')">老闆-阿姨</span>
+        </p>
+    </div>
+    `
+        //註冊
+    } else if (method == 'register') {
+        content = `
+    <div class="d-flex flex-column align-items-center gap-3">
+        <p class="h4 fw-bold">會員</p>
+        <input type="text" class="login-input" placeholder="Name" id="loginName" />
+        <input type="phone" class="login-input" placeholder="phone" id="loginPhone" />
+        <input type="email" class="login-input" placeholder="Email" id="loginEmail" />
+        <input type="password" class="login-input" placeholder="Password" id="loginPassword" />
+        <button class="btn btn-login" onclick="btnRegister()">註冊</button>
 
-
+        <p>已經是會員? <span class="color-primary border-bottom finger" onclick="renderLoginModal('login')">登入</span></p>
+    </div>
+    `
+    }
+    $("#loginModal .modal-body").html(content);
+    $('#loginModal').modal('show');
 }
+
+
 
 //#endregion
 

@@ -308,6 +308,10 @@
                 color: red;
                 text-align: left;
             }
+            #userOrdersModal .modal-content {
+                min-height: 70vh;
+                max-height: 90vh;
+            }
             /*#endregion Modal*/
 
             /*#region ---------- NAN ----------*/
@@ -487,15 +491,7 @@
                         <div class="modal-header border-0 pb-1">
                             <button type="button" class="btn-close float-end float" data-bs-dismiss="modal" aria-label="Close"></button>
                         </div>
-                        <div class="modal-body">
-                            <div class="d-flex flex-column align-items-center gap-3">
-                                <p class="h4 fw-bold">會員</p>
-                                <input type="email" class="login-input" placeholder="Email" id="loginEmail" />
-                                <input type="password" class="login-input" placeholder="Password" id="loginPassword" />
-                                <button class="btn btn-login" onclick="btnLogin()">登入</button>
-                                <p>還沒成為會員? <span class="color-primary border-bottom">註冊</span></p>
-                            </div>
-                        </div>
+                        <div class="modal-body"></div>
                     </div>
                 </div>
             </div>
