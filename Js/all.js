@@ -40,6 +40,11 @@ function showCartModal() {
 function showUserOrderModal() {
     getUserOrders();
 }
+//彈出loginModal
+function showLoginModal() {
+    renderLoginModal();
+    $('#loginModal').modal('show');
+}
 //篩選菜單
 function filterMenu() {
     const cat = $("input[name='分類標籤']:checked").val();
@@ -90,7 +95,7 @@ function submitCart() {
     } else if (getDataFromLocalStorage('_token') == null) {
         saveDataToLocalStorage('returnModal', 'cartModal');
         $("#cartModal").modal('hide');
-        $("#loginModal").modal('show');
+        showLoginModal()
         return;
     }
     const order = {
@@ -462,7 +467,6 @@ function renderCartModal() {
 }
 //渲染歷史訂單Modal //todo
 function renderUserOrdersModal() {
-
     let contents = [];
     if (theUserOrders.length > 0) {
         theUserOrders.forEach(orderObj => {
@@ -515,7 +519,7 @@ function renderUserOrdersModal() {
 function renderNavList() {
     let isLogin = getDataFromLocalStorage('_token') ? true : false;
     let userNameContent = "";
-    let loginoutContent = `<span class="nav-link finger" href="" onclick="renderLoginModal('login')">登入/註冊</span>`;
+    let loginoutContent = `<span class="nav-link finger" href="" onclick="showLoginModal('login')">登入/註冊</span>`;
     if (isLogin) {
         userNameContent = `
         <li class="nav-item" id="navLoginArea">
@@ -575,10 +579,8 @@ function renderLoginModal(method = 'login') {
     `
     }
     $("#loginModal .modal-body").html(content);
-    $('#loginModal').modal('show');
+    //$('#loginModal').modal('show');
 }
-
-
 
 //#endregion
 
