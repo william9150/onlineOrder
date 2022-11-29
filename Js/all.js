@@ -15,7 +15,9 @@ $(function () {
     init();
     //監聽分類標籤
     $('input[name="分類標籤"]').on('change', filterMenu);
-
+    $("#logo").on("click", function () {
+        $("#tag全部").click();
+    })
     updateFooterTotalPrice();
 })
 
@@ -348,7 +350,7 @@ function renderMenu() {
         let catTitle = `<div class="catTitle my-3" data-cat='${catObj.name}'><span class="h4 fw-bolder">${catObj.name}</span></div>`;
         let catContent1 = `<div class="menu-cards row g-3" data-cat='${catObj.name}'>`;
         let catProducts = catObj.products.map(productObj => {
-            return `<div class="col-12 col-md-6 col-xl-4" >
+            return `<div class="col-12 col-md-6 col-xl-4 position-relative" >
                         <div class="foodCard ${productObj.isSoldOut ? 'soldout' : ''}" onclick="showProductModal('${productObj.catId}', '${productObj.id}')">
                             <div class="d-flex flex-column w-60">
                                 <p class="h5">${productObj.name}</p>
@@ -359,6 +361,7 @@ function renderMenu() {
                                 <img class="menuCardImg" src="${productObj.img}" alt="" />
                             </div>
                         </div>
+                        <div class="soldoutMask ${productObj.isSoldOut ? '' : 'd-none'}">已售完</div>
                     </div>                                
                     `;
         }).join('');

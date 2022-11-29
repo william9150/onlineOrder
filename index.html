@@ -9,7 +9,6 @@
                 dataLayer.push(arguments);
             }
             gtag("js", new Date());
-
             gtag("config", "G-CPRSF5GH8B");
         </script>
         <meta charset="utf-8" />
@@ -198,8 +197,18 @@
                 pointer-events: none;
                 position: relative;
             }
-            .foodCard.soldout::before {
+            /* .foodCard.soldout::before {
                 content: "已售完";
+                position: absolute;
+                top: 50%;
+                left: 30%;
+                transform: translate(-50%, -50%);
+                color: var(--color-white);
+                font-size: 25px;
+                font-weight: bold;
+                z-index: 10;
+            } */
+            .soldoutMask {
                 position: absolute;
                 top: 50%;
                 left: 30%;
@@ -362,7 +371,7 @@
             <div class="header">
                 <nav class="navbar navbar-expand-md navbar-light *bg-c-secondary">
                     <div class="container *container-fluid">
-                        <a class="navbar-brand" href="#"><img class="logo" src="./Img/logo.svg" style="width: 80%" alt="" /></a>
+                        <span class="navbar-brand" id="logo"><img class="logo" src="./Img/logo.svg" style="width: 80%" alt="" /></span>
 
                         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent">
                             <span class="navbar-toggler-icon"></span>
