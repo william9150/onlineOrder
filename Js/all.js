@@ -17,6 +17,7 @@ $(function () {
     $('input[name="分類標籤"]').on('change', filterMenu);
     $("#logo").on("click", function () {
         $("#tag全部").click();
+        $('#menu').animate({ scrollTop: 0 }, 'fast');
     })
     updateFooterTotalPrice();
 })
