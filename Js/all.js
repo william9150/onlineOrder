@@ -241,13 +241,13 @@ function switchModal() {
     $(".modal").modal('hide');
     switch (returnModal) {
         case 'cartModal':
-            $('#cartModal').modal('show');
+            showCartModal();
             break;
-        case 'productModal':
-            $('#productModal').modal('show');
-            break;
+        // case 'productModal':
+        //     $('#productModal').modal('show');
+        //     break;
         case 'orderModal':
-            $('#orderModal').modal('show');
+            showUserOrderModal();
             break;
     }
     deleteDataFromLocalStorage('returnModal');
@@ -301,6 +301,7 @@ function login(email, password) {
 function logout() {
     deleteDataFromLocalStorage('_token');
     deleteDataFromLocalStorage('_user');
+    deleteDataFromLocalStorage('returnModal');
     renderNavList();
 }
 //register
