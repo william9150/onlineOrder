@@ -5,7 +5,7 @@ const urlDomain = 'https://json-server-vercel-a.vercel.app';
 
 //#endregion
 $(function () {
-    if (!getDataFromLocalStorage('_token') || !!getDataFromLocalStorage('_user') || getDataFromLocalStorage('_user').role != 'admin') {
+    if (!getDataFromLocalStorage('_token') || !getDataFromLocalStorage('_user') || getDataFromLocalStorage('_user').role != 'admin') {
         window.location.href = 'index.html';
     }
     GetCustomerOrders();
@@ -21,7 +21,7 @@ function GetCustomerOrders() {
     const userId = getDataFromLocalStorage('_user').id;
     const token = getDataFromLocalStorage('_token');
     const config = { headers: { 'Authorization': `Bearer ${token}` } }
-    axios.get(`${urlDomain}/600/orders?isDone=false`, config)
+    axios.get(`${urlDomain}/orders?isDone=false`, config)
         .then(function (response) {
             theCustomerOrders = response.data.reverse();
             //顛倒順序theUserOrders.reverse();

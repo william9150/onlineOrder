@@ -219,6 +219,7 @@ function btnRegister() {
         name: name,
         email: email,
         phone: phone,
+        role: 'customer'
     }
     register(model);
 }
