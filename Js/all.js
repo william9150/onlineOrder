@@ -223,18 +223,6 @@ function btnRegister() {
     register(model);
 }
 
-//save data in local storage
-function saveDataToLocalStorage(key, data) {
-    localStorage.setItem(key, JSON.stringify(data));
-}
-//get data from local storage
-function getDataFromLocalStorage(key) {
-    return JSON.parse(localStorage.getItem(key));
-}
-//delete data from local storage
-function deleteDataFromLocalStorage(key) {
-    localStorage.removeItem(key);
-}
 //switch modal 關閉現在的modal，開啟前一次的modal
 function switchModal() {
     const returnModal = getDataFromLocalStorage('returnModal');
@@ -290,6 +278,11 @@ function login(email, password) {
         .then(function (response) {
             saveDataToLocalStorage('_token', response.data.accessToken);
             saveDataToLocalStorage('_user', response.data.user);
+            if (response.data.user.role == 'admin') {
+                deleteDataFromLocalStorage('returnModal');
+                window.location.href = 'backstage.html';
+                return;
+            }
             $('#loginModal').modal('hide');
             renderNavList();
             switchModal();
@@ -593,6 +586,19 @@ function renderLoginModal(method = 'login') {
 //#endregion
 
 //#region ------------------------------ 其他 ------------------------------
+
+//save data in local storage
+function saveDataToLocalStorage(key, data) {
+    localStorage.setItem(key, JSON.stringify(data));
+}
+//get data from local storage
+function getDataFromLocalStorage(key) {
+    return JSON.parse(localStorage.getItem(key));
+}
+//delete data from local storage
+function deleteDataFromLocalStorage(key) {
+    localStorage.removeItem(key);
+}
 
 // 取得當前時間(2022-01-01 00:00:00)
 function getTimeNow() {
