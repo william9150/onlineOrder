@@ -30,6 +30,10 @@ $(function () {
 //#region ------------------------------ 邏輯流程 ------------------------------
 //初始化
 function init() {
+    //檢查登入狀態
+    if (getDataFromLocalStorage('_user')) {
+        chkTimer();
+    }
     getMenu();
     getFoodAddition();
     renderNavList();
@@ -317,6 +321,25 @@ function sweetError(title, text) {
         timer: 1500
     })
 }
+//sweetAlert 資訊
+function sweetInfo(title, timer = 3000) {
+    const Toast = Swal.mixin({
+        toast: true,
+        position: 'top-end',
+        showConfirmButton: false,
+        timer: timer,
+        timerProgressBar: true,
+        didOpen: (toast) => {
+            toast.addEventListener('mouseenter', Swal.stopTimer)
+            toast.addEventListener('mouseleave', Swal.resumeTimer)
+        }
+    })
+
+    Toast.fire({
+        icon: 'info',
+        title: title
+    })
+}
 //#endregion
 
 
@@ -365,6 +388,8 @@ function login(email, password) {
         .then(function (response) {
             saveDataToLocalStorage('_token', response.data.accessToken);
             saveDataToLocalStorage('_user', response.data.user);
+            saveDataToLocalStorage('_expire', { time: new Date().getTime(), expire: 10 * 60 * 1000 });
+            chkTimer();
             if (response.data.user.role == 'admin') {
                 deleteDataFromLocalStorage('returnModal');
                 window.location.href = 'backstage.html';
@@ -382,6 +407,7 @@ function login(email, password) {
 function logout() {
     deleteDataFromLocalStorage('_token');
     deleteDataFromLocalStorage('_user');
+    deleteDataFromLocalStorage('_expire');
     deleteDataFromLocalStorage('returnModal');
     renderNavList();
 }
@@ -418,6 +444,23 @@ function postCartOrder(order) {
         sweetError('訂單送出失敗', '請重新嘗試');
         console.log('error', error);
     });
+}
+//檢查localStorage是否過期
+function chkTimer() {
+    var timer = setInterval(function () {
+        console.log("chkTimer check");
+        if (localStorage.getItem('_expire')) {
+            let expireTime = getDataFromLocalStorage('_expire');
+            if (new Date().getTime() - expireTime.time > expireTime.expire) {
+                sweetInfo('登入逾時，請重新登入', 3000);
+                logout()
+                clearInterval(timer);
+            }
+        } else {
+            console.log('帳號已登出，localStorage已失效');
+            clearInterval(timer);
+        }
+    }, 1000);
 }
 
 

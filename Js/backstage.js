@@ -20,6 +20,10 @@ $(function () {
 
 //初始化
 function init() {
+    //檢查登入狀態
+    if (getDataFromLocalStorage('_user')) {
+        chkTimer();
+    }
     renderNavList(); //渲染nav
     axios.all([getMenu(), getCats(), getFoodAdditions(), getCustomerOrders()])
         .then(() => {
@@ -174,6 +178,22 @@ function sweetWarning(title, text) {
         showConfirmButton: false,
         timer: 1500
     })
+}
+//檢查localStorage是否過期
+function chkTimer() {
+    var timer = setInterval(function () {
+        console.log("chkTimer check");
+        if (localStorage.getItem('_expire')) {
+            let expireTime = getDataFromLocalStorage('_expire');
+            if (new Date().getTime() - expireTime.time > expireTime.expire) {
+                logout()
+                clearInterval(timer);
+            }
+        } else {
+            console.log('帳號已登出，localStorage已失效');
+            clearInterval(timer);
+        }
+    }, 1000);
 }
 //#endregion
 
