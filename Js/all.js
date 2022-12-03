@@ -24,6 +24,7 @@ $(function () {
         btnAdditionChange();
     });
     updateFooterTotalPrice();
+
 })
 
 //#region ------------------------------ 邏輯流程 ------------------------------
@@ -109,7 +110,7 @@ function updateToCart(productIndex) {
     carts[productIndex].additems = additems;
     carts[productIndex].price = price / qty;
     saveDataToLocalStorage('cart', carts);
-    alert('已更新購物車');
+    sweetSmallSuccess('已更新購物車');
     $('#productModal').modal('hide');
     showCartModal();
     updateFooterTotalPrice();
@@ -118,7 +119,7 @@ function updateToCart(productIndex) {
 function submitCart() {
     const carts = getCarts();
     if (carts.length == 0) {
-        alert('購物車沒有商品');
+        sweetError('購物車沒有商品', '請先加入商品');
         return;
     } else if (getDataFromLocalStorage('_token') == null) {
         saveDataToLocalStorage('returnModal', 'cartModal');
@@ -234,15 +235,6 @@ function btnLogin(callbackModal = "") {
     const email = $("#loginEmail").val();
     const password = $("#loginPassword").val();
     login(email, password)
-
-    // if (email == 'admin' && password == 'admin') {
-    //     alert('登入成功');
-    //     $('#loginModal').modal('hide');
-    //     $('#loginEmail').val('');
-    //     $('#loginPassword').val('');
-    // } else {
-    //     alert('登入失敗');
-    // }
 }
 //btnRegister
 function btnRegister() {
@@ -251,7 +243,7 @@ function btnRegister() {
     const email = $('#loginEmail').val();
     const password = $('#loginPassword').val();
     if (name == '' || phone == '' || email == '' || password == '') {
-        alert('請輸入完整資料');
+        sweetError('請輸入完整資料');
         return;
     }
     let model = {
@@ -285,6 +277,45 @@ function switchModal() {
 function additionIdToName(additionId) {
     let name = Object.values(theFoodAdditions).reduce((a, b) => [...a, ...b.items], []).find(item => item.id == additionId)?.name
     return name ? name : '';
+}
+//sweetAlert 右上角 小成功
+function sweetSmallSuccess(title, timer = 1500) {
+    const Toast = Swal.mixin({
+        toast: true,
+        position: 'top-end',
+        showConfirmButton: false,
+        timer: timer,
+        timerProgressBar: true,
+        didOpen: (toast) => {
+            toast.addEventListener('mouseenter', Swal.stopTimer)
+            toast.addEventListener('mouseleave', Swal.resumeTimer)
+        }
+    })
+
+    Toast.fire({
+        icon: 'success',
+        title: title
+    })
+}
+//sweetAlert 成功
+function sweetSuccess(title, text, timer = 1500) {
+    Swal.fire({
+        icon: 'success',
+        title: title,
+        text: text,
+        showConfirmButton: false,
+        timer: timer
+    })
+}
+//sweetAlert 失敗
+function sweetError(title, text) {
+    Swal.fire({
+        icon: 'error',
+        title: title,
+        text: text,
+        showConfirmButton: false,
+        timer: 1500
+    })
 }
 //#endregion
 
@@ -342,8 +373,9 @@ function login(email, password) {
             $('#loginModal').modal('hide');
             renderNavList();
             switchModal();
+            sweetSmallSuccess('登入成功');
         }).catch(function (error) {
-            alert("帳號或密碼錯誤");
+            sweetError('登入失敗', '帳號或密碼錯誤');
         });
 }
 //logout
@@ -364,6 +396,7 @@ function register(model) {
             $('#loginModal').modal('hide');
             renderNavList();
             switchModal();
+            sweetSmallSuccess('註冊成功');
         }).catch(function (error) {
             console.log('error', error);
         });
@@ -377,12 +410,12 @@ function postCartOrder(order) {
         }
     }).then(function (response) {
         console.log(response);
-        alert('訂單送出成功');
+        sweetSuccess('訂單送出成功', '將盡快為您備餐', 2500);
         switchModal();
         deleteDataFromLocalStorage('cart');
         updateFooterTotalPrice();
     }).catch(function (error) {
-        alert('訂單送出失敗');
+        sweetError('訂單送出失敗', '請重新嘗試');
         console.log('error', error);
     });
 }

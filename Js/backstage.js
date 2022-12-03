@@ -84,10 +84,96 @@ function btnSaveEditProduct() {
     let model = { id, name, catId, img, comment, isSoldOut, price, additionIds };
     updateProduct(id, model);
 }
+//新增產品
+function btnAddProduct() {
+    let myProduct = {
+        "name": "",
+        "catId": "",
+        "img": "",
+        "comment": "",
+        "isSoldOut": false,
+        "price": 0,
+        "additionIds": []
+    }
+    renderProductEditModal(myProduct);
+}
+//儲存新產品
+function btnSaveNewProduct() {
+    let name = $("#productEditModal .modal-body input[name='name']").val();
+    if (!name) {
+        sweetWarning('請填寫商品名稱');
+        return;
+    }
+    let catId = $("#productEditModal .modal-body select[name='catId']").val();
+    let img = $("#productEditModal .modal-body input[name='img']").val();
+    let comment = $("#productEditModal .modal-body input[name='comment']").val();
+    let isSoldOut = $("#productEditModal .modal-body input[name='isSoldOut']:checked").val() == 'true';
+    let price = parseInt($("#productEditModal .modal-body input[name='price']").val());
+    if (price < 1) {
+        sweetWarning('請填寫商品價格', '價格太低啦!!');
+        return;
+    }
+    let additionIds = [];
+    $("#productEditModal .modal-body input[name='additionIds']:checked").each((index, x) => additionIds.push(x.value));
+
+    let model = { name, catId, img, comment, isSoldOut, price, additionIds };
+    addNewProduct(model);
+}
+
 //附加選項id轉name
 function additionIdToName(additionId) {
     let name = Object.values(theFoodAdditions).reduce((a, b) => [...a, ...b.items], []).find(item => item.id == additionId)?.name
     return name ? name : '';
+}
+
+//sweetAlert 右上角 小成功
+function sweetSmallSuccess(title, timer = 1500) {
+    const Toast = Swal.mixin({
+        toast: true,
+        position: 'top-end',
+        showConfirmButton: false,
+        timer: timer,
+        timerProgressBar: true,
+        didOpen: (toast) => {
+            toast.addEventListener('mouseenter', Swal.stopTimer)
+            toast.addEventListener('mouseleave', Swal.resumeTimer)
+        }
+    })
+
+    Toast.fire({
+        icon: 'success',
+        title: title
+    })
+}
+//sweetAlert 成功
+function sweetSuccess(title, text, timer = 1500) {
+    Swal.fire({
+        icon: 'success',
+        title: title,
+        text: text,
+        showConfirmButton: false,
+        timer: timer
+    })
+}
+//sweetAlert 失敗
+function sweetError(title, text) {
+    Swal.fire({
+        icon: 'error',
+        title: title,
+        text: text,
+        showConfirmButton: false,
+        timer: 1500
+    })
+}
+//sweetAlert 警告
+function sweetWarning(title, text) {
+    Swal.fire({
+        icon: 'warning',
+        title: title,
+        text: text,
+        showConfirmButton: false,
+        timer: 1500
+    })
 }
 //#endregion
 
@@ -118,6 +204,7 @@ function updateOrder(id, data) {
     const config = { headers: { 'Authorization': `Bearer ${token}` } }
     axios.put(`${urlDomain}/orders/${id}`, data, config)
         .then(function (response) {
+            sweetSmallSuccess('更新成功');
             getCustomerOrders();
         }).catch(function (error) {
             console.log('error', error);
@@ -153,6 +240,20 @@ function updateProduct(id, model) {
         .then(function (response) {
             getMenu();
             $("#productEditModal").modal("hide")
+            sweetSuccess('更新成功', '商品已更新');
+        }).catch(function (error) {
+            console.log('error', error);
+        });
+}
+//新增產品資料
+function addNewProduct(model) {
+    const token = getDataFromLocalStorage('_token');
+    const config = { headers: { 'Authorization': `Bearer ${token}` } }
+    axios.post(`${urlDomain}/products`, model, config)
+        .then(function (response) {
+            getMenu();
+            $("#productEditModal").modal("hide")
+            sweetSuccess('新增成功', '商品已新增');
         }).catch(function (error) {
             console.log('error', error);
         });
@@ -350,6 +451,7 @@ function renderProductEditModal(model) {
     $(`#productEditModal .modal-body input[name='isSoldOut']`).prop('checked', false);
     $(`#productEditModal .modal-body input[name='isSoldOut'][value='${model.isSoldOut}']`).prop('checked', true);
     $("#productEditModal .modal-body input[name='price']").val(model.price);
+    $("#productEditModal .modal-footer button").attr('onclick', `${model?.id ? 'btnSaveProduct()' : 'btnSaveNewProduct()'}`);
     $("#productEditModal").modal("show")
 }
 
