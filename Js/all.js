@@ -6,8 +6,8 @@ let theMenu = []; //存放菜單的陣列(sort by catId)
 let theProducts = []; //存放菜單的陣列(sort by productId)
 let theUserOrders = []; //客人的歷史訂單
 let theFoodAdditions = []; //食物附加選項
-const urlDomain = 'http://localhost:3000';
-// const urlDomain = 'https://json-server-vercel-a.vercel.app';
+// const urlDomain = 'http://localhost:3000';
+const urlDomain = 'https://json-server-vercel-a.vercel.app';
 
 //#endregion
 
