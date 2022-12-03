@@ -28,7 +28,10 @@ function init() {
     getMenu();
     renderNavList();
 }
-
+//前往後台
+function goToBackstage() {
+    window.location.href = 'backstage.html';
+}
 //彈出商品Modal
 function showProductModal(catId, productId) {
     renderProductModal(productId);
@@ -313,7 +316,6 @@ function register(model) {
             console.log('error', error);
         });
 }
-
 //post cart order with token
 function postCartOrder(order) {
     const token = getDataFromLocalStorage('_token');
@@ -520,6 +522,7 @@ function renderUserOrdersModal() {
 //渲染NAV清單
 function renderNavList() {
     let isLogin = getDataFromLocalStorage('_token') ? true : false;
+    let isAdmin = getDataFromLocalStorage('_user') ? getDataFromLocalStorage('_user').role == 'admin' : false;
     let userNameContent = "";
     let loginoutContent = `<span class="nav-link finger" href="" onclick="showLoginModal('login')">登入/註冊</span>`;
     if (isLogin) {
@@ -539,6 +542,9 @@ function renderNavList() {
     </li>
     <li class="nav-item">
         ${isLogin ? '<span class="nav-link finger" onclick="showUserOrderModal()">訂單查詢</span>' : ''}
+    </li>
+    <li class="nav-item">
+        ${isAdmin ? '<span class="nav-link finger" onclick="goToBackstage()">切換至後台</span>' : ''}
     </li>
     <li class="nav-item" id="">
         ${loginoutContent}
@@ -561,7 +567,7 @@ function renderLoginModal(method = 'login') {
         <p class="fw-light">
             <span>Demo: </span>
             <span class="ms-2 finger" onclick="demoInput('小明')">顧客-小明</span>
-            <span class="ms-2 finger" onclick="demoInput('')">老闆-阿姨</span>
+            <span class="ms-2 finger" onclick="demoInput('阿姨')">老闆-阿姨</span>
         </p>
     </div>
     `

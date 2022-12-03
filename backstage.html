@@ -89,8 +89,12 @@
                 /* height: 72px; */
                 z-index: 100;
             }
+            .page {
+                display: none;
+            }
             /*#endregion 通用設定*/
             /*#region ---------- 卡片 ----------*/
+
             .foodCard {
                 /* display: flex; */
                 box-sizing: border-box;
@@ -121,7 +125,81 @@
             .card-body {
                 padding: 1rem;
             }
+            .btn-my-primary {
+                color: var(--color-white);
+                padding: 0.25rem 0.5rem;
+                /* width: auto;
+                height: 40px; */
+                background: var(--color-primary);
+                box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.2);
+                border-radius: 8px;
+            }
             /*#endregion 卡片*/
+
+            /*#region ---------- 產品管理表格 ----------*/
+            .tableFoodImg {
+                text-align: center;
+                width: 100%;
+                height: 100px;
+                object-fit: cover;
+                border-radius: 8px;
+            }
+
+            /*#region ---------- Footer ----------*/
+            .border-left {
+                border-left: 4px solid var(--color-primary);
+            }
+            /*#endregion Footer*/
+
+            /*#region Table設定*/
+
+            .h-100vh {
+                height: 80vh;
+            }
+            .table-scroll {
+                overflow-y: auto;
+            }
+
+            .table-scroll thead {
+                position: sticky;
+                top: 0;
+                background-color: #ffffff;
+                /* background-color: rgb(241, 241, 241); */
+            }
+
+            .table-scroll tbody tr {
+                vertical-align: middle;
+                border-bottom: 1px solid #ddd;
+            }
+
+            /*#endregion Table設定*/
+
+            /*#region ---------- 產品編輯Modal productEditModal ----------*/
+            #productEditModal .modal-body input:not([type="radio"]),
+            #productEditModal .modal-body select {
+                width: 100%;
+                height: 40px;
+                border: 1px solid var(--color-secondary);
+                border-radius: 8px;
+                padding: 0 8px;
+            }
+            #productEditModal .modal-body div.item {
+                margin-bottom: 1rem;
+            }
+            .btn-radio {
+                /* box-sizing: border-box; */
+                padding: 0.5rem 1.5rem;
+                height: 40px;
+                border: 2px solid var(--color-primary);
+                filter: drop-shadow(0px 4px 4px rgba(0, 0, 0, 0.2));
+                border-radius: 8px;
+                white-space: nowrap;
+            }
+            .btn-check:checked + .btn-radio {
+                background: var(--color-primary);
+                box-shadow: 0px 0px 2px rgba(0, 0, 0, 0.2);
+                color: var(--color-white);
+            }
         </style>
     </head>
     <body>
@@ -154,39 +232,115 @@
             </div>
             <!-- 中間主要內容 -->
             <div class="main-content container">
-                <div class="row row-cols-5 g-3" id="customerOrders">
-                    <!-- <div class="">
-                        <div class="foodCard">
-                            <div class="顧客資訊">
-                                <div class="d-flex justify-content-between"><span>訂單編號</span><span>OD112977777</span></div>
-                                <div class="d-flex justify-content-between"><span>訂單狀態</span><span>處理中</span></div>
-                                <div class="d-flex justify-content-between"><span>訂購人</span><span>小明</span></div>
-                                <div class="d-flex justify-content-between"><span>電話</span><span>0977123666</span></div>
-                                <div class="d-flex justify-content-between"><span>總金額</span><span>$75</span></div>
-                            </div>
-                            <hr class="m-1" />
-                            <div class="餐點內容">
-                                <div><span>無骨雞腿堡</span></div>
-                                <div class="fw-light d-flex justify-content-end"><span>1份</span></div>
-                            </div>
-                            <div class="餐點內容">
-                                <div><span>玉米蛋餅</span></div>
-                                <div class="fw-light d-flex justify-content-end"><span>1份</span></div>
-                            </div>
-                        </div>
-                    </div> -->
+                <!-- 出餐管理 -->
+                <div class="page customerOrders">
+                    <div class="row row-cols-2 row-cols-md-3 row-cols-lg-4 row-cols-xl-5 g-3" id="customerOrders"></div>
+                </div>
+
+                <!-- 商品管理 -->
+                <div class="page productManage">
+                    <div class="table-scroll h-100vh" id="productManage">
+                        <table class="table">
+                            <thead>
+                                <tr class="text-center">
+                                    <th>品項名稱</th>
+                                    <th>類別</th>
+                                    <th>圖片</th>
+                                    <th>簡介</th>
+                                    <th>附加項目</th>
+                                    <th>狀態</th>
+                                    <th>價格</th>
+                                    <th>編輯</th>
+                                </tr>
+                            </thead>
+                            <tbody id="productManageList"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- 營收分析 -->
+                <div class="page revenueAnalysis">
+                    <div id="revenueAnalysis"></div>
                 </div>
             </div>
             <!-- 頁尾 -->
             <div class="footer py-2">
                 <div class="container">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div class="border-left fw-bolder">
-                            <span class="ms-2">訂單小計</span>
-                            <span class="text-danger" id="footerTotalPrice">$0</span>
+                    <div class="d-flex justify-content-between align-items-center py-2">
+                        <div class="border-left fw-bolder finger" onclick="switchOrders('all')">
+                            <span class="ms-2">全部訂單</span>
+                            <span class="*text-danger" id="allOrdersCount">0</span>
                         </div>
-                        <div>
-                            <button class="btn btn-chkOrder" onclick="showCartModal()">查看購物車</button>
+                        <div class="border-left fw-bolder finger" onclick="switchOrders('true')">
+                            <span class="ms-2">已完成</span>
+                            <span class="*text-danger" id="doneOrdersCount">0</span>
+                        </div>
+                        <div class="border-left fw-bolder finger" onclick="switchOrders('false')">
+                            <span class="ms-2">未完成</span>
+                            <span class="text-danger" id="notDoneOrdersCount">0</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- Modal -->
+        <div>
+            <!-- Login Modal -->
+            <div class="modal fade" id="loginModal" tabindex="-1">
+                <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+                    <div class="modal-content">
+                        <div class="modal-header border-0 pb-1">
+                            <button type="button" class="btn-close float-end float" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body"></div>
+                    </div>
+                </div>
+            </div>
+            <!-- Product Edit Modal -->
+            <div class="modal fade" id="productEditModal" tabindex="-1">
+                <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+                    <div class="modal-content">
+                        <div class="modal-header d-block">
+                            <h4 class="text-center d-inline-block mb-0">編輯產品內容</h4>
+                            <button type="button" class="btn-close float-end float" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body" data-id="">
+                            <div class="item">
+                                <label for="" class="col-2">品項名稱</label>
+                                <input type="text" value="" id="" name="name" />
+                            </div>
+                            <div class="item">
+                                <label for="" class="col-2">類別</label>
+                                <select name="catId" id=""></select>
+                            </div>
+                            <div class="item">
+                                <label for="" class="col-2">圖片網址</label>
+                                <input type="text" value="" id="" name="img" />
+                            </div>
+                            <div class="item">
+                                <label for="" class="col-2">簡介</label>
+                                <input type="text" value="" id="" name="comment" />
+                            </div>
+                            <div class="item">
+                                <label for="" class="col-2">附加項目</label>
+                                <input type="text" value="" id="" name="addhId" />
+                            </div>
+                            <div class="item">
+                                <label for="" class="col-2">狀態</label>
+                                <div>
+                                    <input type="radio" class="btn-check" name="isSoldOut" id="isSoldOut1" value="false" autocomplete="off" checked />
+                                    <label class="btn btn-radio" for="isSoldOut1">販售中</label>
+                                    <input type="radio" class="btn-check" name="isSoldOut" id="isSoldOut2" value="true" autocomplete="off" />
+                                    <label class="btn btn-radio" for="isSoldOut2">已售完</label>
+                                </div>
+                            </div>
+                            <div class="item">
+                                <label for="" class="col-2">價格</label>
+                                <input type="number" value="" id="" name="price" />
+                            </div>
+                        </div>
+                        <div class="modal-footer justify-content-center">
+                            <button type="button" class="btn btn-my-primary px-3" onclick="btnSaveEditProduct()">儲存</button>
                         </div>
                     </div>
                 </div>
