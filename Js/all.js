@@ -4,9 +4,10 @@
 //#region ------------------------------ 全域變數 ------------------------------
 let theMenu = []; //存放菜單的陣列(sort by catId)
 let theProducts = []; //存放菜單的陣列(sort by productId)
-let theUserOrders = [];
-// const urlDomain = 'http://localhost:3000';
-const urlDomain = 'https://json-server-vercel-a.vercel.app';
+let theUserOrders = []; //客人的歷史訂單
+let theFoodAdditions = []; //食物附加選項
+const urlDomain = 'http://localhost:3000';
+// const urlDomain = 'https://json-server-vercel-a.vercel.app';
 
 //#endregion
 
@@ -19,6 +20,9 @@ $(function () {
         $("#tag全部").click();
         $('#menu').animate({ scrollTop: 0 }, 'fast');
     })
+    $("#productModal").on("change", "#foodAdditionOptions input.foodAdditionOption", function () {
+        btnAdditionChange();
+    });
     updateFooterTotalPrice();
 })
 
@@ -26,6 +30,7 @@ $(function () {
 //初始化
 function init() {
     getMenu();
+    getFoodAddition();
     renderNavList();
 }
 //前往後台
@@ -71,13 +76,19 @@ function addToCart(catId, productId) {
     const carts = getCarts();
     const qty = parseInt($('#tempProductAmount').text());
     const comment = $('#tempProductComment').val();
+    let additems = [];
+    $('#foodAdditionOptions input.foodAdditionOption:checked').each(function () {
+        additems.push($(this).val());
+    });
+    const price = parseInt($("#tempProductTotal").text());
     carts.push({
         catId: catId,
         id: products.id,
         name: products.name,
-        price: products.price,
+        price: price / qty,
         qty: qty,
         comment: comment,
+        additems: additems,
     });
     saveDataToLocalStorage('cart', carts);
     $('#productModal').modal('hide');
@@ -88,8 +99,15 @@ function updateToCart(productIndex) {
     const carts = getCarts();
     const qty = parseInt($('#tempProductAmount').text());
     const comment = $('#tempProductComment').val();
+    const additems = [];
+    $('#foodAdditionOptions input.foodAdditionOption:checked').each(function () {
+        additems.push($(this).val());
+    });
+    const price = parseInt($("#tempProductTotal").text());
     carts[productIndex].qty = qty;
     carts[productIndex].comment = comment;
+    carts[productIndex].additems = additems;
+    carts[productIndex].price = price / qty;
     saveDataToLocalStorage('cart', carts);
     alert('已更新購物車');
     $('#productModal').modal('hide');
@@ -142,7 +160,26 @@ function adjAmount(price, method) {
         tempProductAmount--;
     }
     $('#tempProductAmount').text(tempProductAmount);
-    $('#tempProductTotal').text(`${price * tempProductAmount}`);
+    countCurrentPrice();
+    //$('#tempProductTotal').text(`${price * tempProductAmount}`);
+}
+//附加選項增減
+function btnAdditionChange() {
+    let addPrice = 0;
+    $("#foodAdditionOptions input.foodAdditionOption:checked").each(function () {
+        addPrice += parseInt($(this).attr('data-add-price'));
+    })
+    $('#tempProductTotal').attr('data-add-price', addPrice);
+    countCurrentPrice();
+}
+
+//計算產品總價
+function countCurrentPrice() {
+    const foodPrice = parseInt($('#tempProductTotal').attr('data-food-price'));
+    const additionPrice = parseInt($('#tempProductTotal').attr('data-add-price'));
+    const qty = parseInt($('#tempProductAmount').text());
+    const currentPrice = (foodPrice + additionPrice) * qty;
+    $('#tempProductTotal').text(currentPrice);
 }
 //計算購物車總金額
 function countCartTotalPrice() {
@@ -244,7 +281,11 @@ function switchModal() {
     }
     deleteDataFromLocalStorage('returnModal');
 }
-
+//附加選項id轉name
+function additionIdToName(additionId) {
+    let name = Object.values(theFoodAdditions).reduce((a, b) => [...a, ...b.items], []).find(item => item.id == additionId)?.name
+    return name ? name : '';
+}
 //#endregion
 
 
@@ -260,6 +301,17 @@ function getMenu() {
         console.log('error', error);
     });
 }
+//取得食品附加項目
+function getFoodAddition() {
+    axios.get(`${urlDomain}/additions`)
+        .then(function (response) {
+            theFoodAdditions = response.data;
+            console.log('theFoodAdditions', theFoodAdditions);
+            // renderFoodAddition();
+        }).catch(function (error) {
+            console.log('error', error);
+        });
+}
 //取得用戶歷史訂單
 function getUserOrders() {
     const userId = getDataFromLocalStorage('_user').id;
@@ -268,7 +320,7 @@ function getUserOrders() {
     axios.get(`${urlDomain}/600/orders?userId=${userId}`, config)
         .then(function (response) {
             theUserOrders = response.data.reverse();
-            //顛倒順序theUserOrders.reverse();
+            console.log('theUserOrders', theUserOrders);
             renderUserOrdersModal();
         }).catch(function (error) {
             console.log('error', error);
@@ -373,7 +425,20 @@ function renderMenu() {
 //渲染產品Modal
 function renderProductModal(productId) {
     const myProductObj = theProducts.find(productObj => productObj.id == productId);
-    const { catId, id, name, comment, price, img, isSoldOut } = myProductObj;
+    const { catId, id, name, comment, price, img, isSoldOut, additionIds } = myProductObj;
+    //食物的附加選項
+    let additionContents = additionIds.map(additionId => {
+        let addObj = theFoodAdditions.find(x => x.id == additionId);
+        let str = `<div class="" data-addtion-id="${addObj.id}">
+                        <label>${addObj.name}</label>
+                        <hr class="my-1"/>
+                        ${addObj.items.map(item => {
+            return `<input type="${addObj.isMulti ? 'checkbox' : 'radio'}" class="btn-check foodAdditionOption" name="${addObj.name}" id="add-${item.id}" value="${item.id}" data-add-price="${item.price}">
+                                    <label class="btn btn-pill-primary" for="add-${item.id}" >${item.name} +$${item.price}</label>`;
+        }).join('')}
+                    </div>`;
+        return str;
+    })
     let content = `<div class="modal-content">
     <div class="modal-header d-block pb-1" style="border-width: 0;">             
     <button type="button" class="btn-close float-end float" data-bs-dismiss="modal"></button>
@@ -389,9 +454,9 @@ function renderProductModal(productId) {
             <p class="h5">$${price}</p>
         </div>
         <!-- 選項 -->
-        <!-- <div>
-            Lorem ipsum dolor sit amet consectetur, adipisicing elit. Adipisci obcaecati possimus rem perspiciatis facilis, praesentium
-        </div>-->
+        <div id="foodAdditionOptions">
+            ${additionContents.join("")}            
+        </div>
 
         <br />
         <!-- 備註 -->
@@ -410,9 +475,9 @@ function renderProductModal(productId) {
         </div>
 
         <!-- 加入購物車 -->
-        <button type="button" class="btn btn-addToCart my-1" id="btnAddToCart" onclick="addToCart('${catId}','${id}')">
+        <button type="button" class="btn btn-addToCart my-1" id="btnAddToCart" onclick="addToCart('${catId}','${id}')" >
             <span class=""> 加入購物車($</span>
-            <span class="" id="tempProductTotal">${price}</span>
+            <span class="" id="tempProductTotal" data-food-price="${price}" data-add-price="0" data-total-price="${price}">${price}</span>
             <span class="">)</span>
         </button>
     </div>
@@ -425,7 +490,7 @@ function renderCartModal() {
     let contentCartList = [];
     if (cartList.length > 0) {
         contentCartList = cartList.map((productObj, index) => {
-            const { id, name, price, qty, comment } = productObj;
+            const { id, name, price, qty, comment, additems } = productObj;
             return `
         <div class="cartfoodCard d-block mb-2" data-id="${id}" data-price="${price}">
             <div class="d-flex justify-content-between mb-2">
@@ -435,8 +500,12 @@ function renderCartModal() {
                     <button class="btn rounded-circle btn-sm cartDelete" onclick="deleteCartProduct('${index}')"><i class="fa-solid fa-trash-can"></i></button>
                 </div>
             </div>
+            
+            <span class="h6 fw-light d-block">${comment ? (comment) : ""}</span>
+            <span class="h6 fw-light d-block">${additems.map(x => additionIdToName(x)).join("/")}</span>
             <div class="d-flex justify-content-between">
-                <span class="fw-light">${comment ? (comment + " / ") : ""}$${price} / ${qty}份</span>
+                
+                <span class="fw-light">$${price} / ${qty}份</span>
                 <div class="text-danger fw-bold">$${price * qty}</div>
             </div>
         </div>
@@ -479,8 +548,11 @@ function renderUserOrdersModal() {
                 let str = `
             <div class="cartfoodCard d-block mb-2" data-id="${foodObj.id}" data-price="${foodObj.price}">
                 <span class="h6 fw-bolder text-start">${foodObj.name}</span>
+                <br/>
+                <span class="fw-light">${foodObj.comment ? (foodObj.comment + " / ") : ''}</span>
+                <span class="fw-light">${foodObj.additems.length > 0 ? foodObj.additems.map(x => additionIdToName(x)).join("/") : ''}</span>
                 <div class="d-flex justify-content-between">
-                    <span class="fw-light">${foodObj.comment ? (foodObj.comment + " / ") : ''}${foodObj.qty}份</span>
+                    <span class="fw-light">${foodObj.qty}份</span>
                     <div class="text-danger fw-bold">$${foodObj.price * foodObj.qty}</div>
                 </div>
             </div>`

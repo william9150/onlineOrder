@@ -146,6 +146,9 @@
             }
 
             /*#region ---------- Footer ----------*/
+            .footer {
+                height: 56px;
+            }
             .border-left {
                 border-left: 4px solid var(--color-primary);
             }
@@ -198,6 +201,20 @@
             .btn-check:checked + .btn-radio {
                 background: var(--color-primary);
                 box-shadow: 0px 0px 2px rgba(0, 0, 0, 0.2);
+                color: var(--color-white);
+            }
+            .btn-pill-primary {
+                background: var(--color-white);
+                color: var(--color-primary);
+                border-radius: 50rem;
+                padding: 0.25rem 0.5rem;
+                margin: 2px 1px;
+                border: 1px solid var(--color-primary);
+                cursor: pointer;
+                font-size: 1rem;
+            }
+            .btn-check:checked + .btn-pill-primary {
+                background: var(--color-primary);
                 color: var(--color-white);
             }
         </style>
@@ -266,18 +283,20 @@
             <!-- 頁尾 -->
             <div class="footer py-2">
                 <div class="container">
-                    <div class="d-flex justify-content-between align-items-center py-2">
-                        <div class="border-left fw-bolder finger" onclick="switchOrders('all')">
-                            <span class="ms-2">全部訂單</span>
-                            <span class="*text-danger" id="allOrdersCount">0</span>
-                        </div>
-                        <div class="border-left fw-bolder finger" onclick="switchOrders('true')">
-                            <span class="ms-2">已完成</span>
-                            <span class="*text-danger" id="doneOrdersCount">0</span>
-                        </div>
-                        <div class="border-left fw-bolder finger" onclick="switchOrders('false')">
-                            <span class="ms-2">未完成</span>
-                            <span class="text-danger" id="notDoneOrdersCount">0</span>
+                    <div class="page customerOrders">
+                        <div class="d-flex justify-content-start align-items-center py-2">
+                            <div class="border-left me-3 fw-bolder finger" onclick="switchOrders('all')">
+                                <span class="ms-2">全部訂單</span>
+                                <span class="*text-danger" id="allOrdersCount">0</span>
+                            </div>
+                            <div class="border-left me-3 fw-bolder finger" onclick="switchOrders('true')">
+                                <span class="ms-2">已完成</span>
+                                <span class="*text-danger" id="doneOrdersCount">0</span>
+                            </div>
+                            <div class="border-left me-3 fw-bolder finger" onclick="switchOrders('false')">
+                                <span class="ms-2">未完成</span>
+                                <span class="text-danger" id="notDoneOrdersCount">0</span>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -323,7 +342,7 @@
                             </div>
                             <div class="item">
                                 <label for="" class="col-2">附加項目</label>
-                                <input type="text" value="" id="" name="addhId" />
+                                <div name="additionIds"></div>
                             </div>
                             <div class="item">
                                 <label for="" class="col-2">狀態</label>

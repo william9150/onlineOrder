@@ -222,7 +222,20 @@
                 object-fit: cover;
                 border-radius: 8px;
             }
-
+            .btn-pill-primary {
+                background: var(--color-white);
+                color: var(--color-primary);
+                border-radius: 50rem;
+                padding: 0.25rem 0.5rem;
+                margin: 2px 1px;
+                border: 1px solid var(--color-primary);
+                cursor: pointer;
+                font-size: 1rem;
+            }
+            .btn-check:checked + .btn-pill-primary {
+                background: var(--color-primary);
+                color: var(--color-white);
+            }
             /*#endregion Menu*/
 
             /*#region ---------- Footer ----------*/
@@ -347,8 +360,7 @@
                     min-height: 676px;
                 }
             }
-            .adsContent {
-            }
+
             .adsImg img {
                 width: 100%;
                 object-fit: contain;
@@ -369,7 +381,7 @@
             <div class="header">
                 <nav class="navbar navbar-expand-md navbar-light *bg-c-secondary">
                     <div class="container *container-fluid">
-                        <span class="navbar-brand" id="logo"><img class="logo" src="./Img/logo.svg" style="width: 80%" alt="" /></span>
+                        <span class="navbar-brand m-0" id="logo"><img class="logo" src="./Img/logo.svg" style="width: 80%" alt="" /></span>
 
                         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent">
                             <span class="navbar-toggler-icon"></span>

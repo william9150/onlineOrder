@@ -4,22 +4,28 @@ let theAllOrders = []; //全部的 客戶訂單
 let theDoneOrders = []; //已完成的 客戶訂單資料
 let theMenu = []; //存放菜單的陣列(sort by catId)(cat 底下再放 products)
 let theCats = []; //商品類別
+let theFoodAdditions = []; //食品附加選項
 let theProducts = []; //存放菜單的陣列(sort by productId)
-// const urlDomain = 'http://localhost:3000';
-const urlDomain = 'https://json-server-vercel-a.vercel.app';
+const urlDomain = 'http://localhost:3000';
+// const urlDomain = 'https://json-server-vercel-a.vercel.app';
 
 //#endregion
 $(function () {
     if (!getDataFromLocalStorage('_token') || !getDataFromLocalStorage('_user') || getDataFromLocalStorage('_user').role != 'admin') {
         window.location.href = 'index.html';
     }
-    renderNavList(); //渲染nav
-    getCats(); //取得商品類別
-    getMenu(); //取得菜單資料    
-    getCustomerOrders(); //取得客戶訂單資料
-    goToCustomerOrdersPage(); //預設顯示出餐管理
+    init();
 })
 //#region ---------- 邏輯流程 ----------
+
+//初始化
+function init() {
+    renderNavList(); //渲染nav
+    axios.all([getMenu(), getCats(), getFoodAdditions(), getCustomerOrders()])
+        .then(() => {
+            goToCustomerOrdersPage() //預設顯示出餐管理
+        });
+}
 //完成此訂單
 function finishOrder(id) {
     let myOrder = theNotDoneOrders.find(x => x.id == id);
@@ -72,11 +78,17 @@ function btnSaveEditProduct() {
     let comment = $("#productEditModal .modal-body input[name='comment']").val();
     let isSoldOut = $("#productEditModal .modal-body input[name='isSoldOut']:checked").val() == 'true';
     let price = parseInt($("#productEditModal .modal-body input[name='price']").val());
-    let model = { id, name, catId, img, comment, isSoldOut, price }
-    console.log(model)
+    let additionIds = [];
+    $("#productEditModal .modal-body input[name='additionIds']:checked").each((index, x) => additionIds.push(x.value));
+
+    let model = { id, name, catId, img, comment, isSoldOut, price, additionIds };
     updateProduct(id, model);
 }
-
+//附加選項id轉name
+function additionIdToName(additionId) {
+    let name = Object.values(theFoodAdditions).reduce((a, b) => [...a, ...b.items], []).find(item => item.id == additionId)?.name
+    return name ? name : '';
+}
 //#endregion
 
 //#region ---------- API ----------
@@ -145,7 +157,17 @@ function updateProduct(id, model) {
             console.log('error', error);
         });
 }
-
+//取得食品附加項目
+function getFoodAdditions() {
+    axios.get(`${urlDomain}/additions`)
+        .then(function (response) {
+            theFoodAdditions = response.data;
+            console.log('theFoodAdditions', theFoodAdditions);
+            // renderFoodAddition();
+        }).catch(function (error) {
+            console.log('error', error);
+        });
+}
 //#endregion
 
 //#region ---------- 畫面渲染 ----------
@@ -175,6 +197,7 @@ function renderCustomerOrders(status = 'false') {
             return `<div class="餐點內容">
                         <div><span>${x.name}</span></div>
                         <div class="fw-light d-flex justify-content-end"><span>${x.comment}</span></div>
+                        <div class="fw-light d-flex justify-content-end"><span>${x.additems.map(addi => additionIdToName(addi)).join("/")}</span></div>
                         <div class="fw-light d-flex justify-content-end"><span>${x.qty}份</span></div>
                     </div>`
         })
@@ -224,7 +247,7 @@ function renderNavList() {
         <span class="nav-link finger" onclick="goToProductManagePage()">菜單管理</span>
     </li>
     <li class="nav-item">
-        <span class="nav-link finger" onclick="goToIndex()">營收分析</span>
+        <span class="nav-link finger" onclick="">營收分析</span>
     </li>
     <li class="nav-item">
         <span class="nav-link finger" onclick="goToIndex()">切換至前台</span>
@@ -275,6 +298,7 @@ function renderLoginModal(method = 'login') {
 }
 //渲染footer
 function renderFooter() {
+
     $("#allOrdersCount").html(theAllOrders.length);
     $("#doneOrdersCount").html(theDoneOrders.length);
     $("#notDoneOrdersCount").html(theNotDoneOrders.length);
@@ -284,7 +308,7 @@ function renderProductManageTable() {
 
     let contents = [];
     theProducts.forEach((product, index) => {
-        let { id, name, price, catId, comment, img, isSoldOut, } = product;
+        let { id, name, price, catId, comment, img, isSoldOut, additionIds } = product;
         let content = `
         <tr class="text-center">
             <td>${name}</td>
@@ -293,12 +317,12 @@ function renderProductManageTable() {
                 <img src="${img}" alt="" class="tableFoodImg">
             </td>
             <td width="25%">${comment}</td>            
-            <td>附加項目</td>
-            <td>${isSoldOut ? '已售完' : '販售中'}</td>          
+            <td>${additionIds.map(myadd => theFoodAdditions.find(theAdd => theAdd.id == myadd)?.name)}</td>
+            <td class="${isSoldOut ? 'text-danger' : ''}">${isSoldOut ? '已售完' : '販售中'}</td>          
             <td>$${price}</td>
             <td>
                 <button class="btn btn-sm btn-outline-primary" onclick="btnEditProduct('${id}')">編輯</button>
-                <button class="btn btn-sm btn-outline-danger" onclick="deleteProduct('${id}')">刪除</button>
+                <button class="btn btn-sm btn-outline-danger" onclick="deleteProduct('${id}')" hidden>刪除</button>
             </td>
         </tr>
         `
@@ -310,12 +334,19 @@ function renderProductManageTable() {
 }
 //渲染產品編輯Modal
 function renderProductEditModal(model) {
+    let additionContents = theFoodAdditions.map(addition => {
+        return `
+        <input type="checkbox" class="btn-check" name="additionIds" id="edit-add-${addition.id}" value="${addition.id}" ${model.additionIds.includes(addition.id) ? 'checked' : ''}>
+        <label class="btn btn-pill-primary" for="edit-add-${addition.id}" >${addition.name}</label>
+        `
+    })
     $("#productEditModal .modal-body").attr('data-id', model.id);
     $("#productEditModal .modal-body input[name='name']").val(model.name);
     let catContents = theCats.map(x => `<option value="${x.id}" ${model.catId == x.id ? 'selected' : ''}>${x.name}</option>`);
     $("#productEditModal .modal-body select[name='catId']").html(catContents);
     $("#productEditModal .modal-body input[name='img']").val(model.img);
     $("#productEditModal .modal-body input[name='comment']").val(model.comment);
+    $("#productEditModal .modal-body div[name='additionIds']").html(additionContents.join(""));
     $(`#productEditModal .modal-body input[name='isSoldOut']`).prop('checked', false);
     $(`#productEditModal .modal-body input[name='isSoldOut'][value='${model.isSoldOut}']`).prop('checked', true);
     $("#productEditModal .modal-body input[name='price']").val(model.price);
