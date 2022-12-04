@@ -34,6 +34,10 @@ function init() {
     getFoodAddition();
     renderNavList();
     updateFooterTotalPrice();
+    gtag('event', 'screen_view', {
+        'app_name': '快取早餐',
+        'screen_name': 'Index'
+    });
 }
 //前往後台
 function goToBackstage() {

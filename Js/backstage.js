@@ -33,6 +33,10 @@ function init() {
         .then(() => {
             goToCustomerOrdersPage() //預設顯示出餐管理
         });
+    gtag('event', 'screen_view', {
+        'app_name': '快取早餐',
+        'screen_name': 'backstage'
+    });
 }
 //完成此訂單
 function finishOrder(id) {
