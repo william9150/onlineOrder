@@ -1,16 +1,13 @@
-//#region ----------  ----------
-//#endregion
-
 //#region ------------------------------ 全域變數 ------------------------------
 let theMenu = []; //存放菜單的陣列(sort by catId)
 let theProducts = []; //存放菜單的陣列(sort by productId)
 let theUserOrders = []; //客人的歷史訂單
 let theFoodAdditions = []; //食物附加選項
+const expireMins = 30; //登入過期時間(分鐘)
 // const urlDomain = 'http://localhost:3000';
 const urlDomain = 'https://json-server-vercel-a.vercel.app';
 
 //#endregion
-
 
 $(function () {
     init();
@@ -23,7 +20,6 @@ $(function () {
     $("#productModal").on("change", "#foodAdditionOptions input.foodAdditionOption", function () {
         btnAdditionChange();
     });
-    updateFooterTotalPrice();
 
 })
 
@@ -37,6 +33,7 @@ function init() {
     getMenu();
     getFoodAddition();
     renderNavList();
+    updateFooterTotalPrice();
 }
 //前往後台
 function goToBackstage() {
@@ -282,103 +279,7 @@ function additionIdToName(additionId) {
     let name = Object.values(theFoodAdditions).reduce((a, b) => [...a, ...b.items], []).find(item => item.id == additionId)?.name
     return name ? name : '';
 }
-//sweetAlert 右上角 小成功
-function sweetSmallSuccess(title, timer = 1500) {
-    const Toast = Swal.mixin({
-        toast: true,
-        position: 'top-end',
-        showConfirmButton: false,
-        timer: timer,
-        timerProgressBar: true,
-        didOpen: (toast) => {
-            toast.addEventListener('mouseenter', Swal.stopTimer)
-            toast.addEventListener('mouseleave', Swal.resumeTimer)
-        }
-    })
 
-    Toast.fire({
-        icon: 'success',
-        title: title
-    })
-}
-//sweetAlert 成功
-function sweetSuccess(title, text, timer = 1500) {
-    Swal.fire({
-        icon: 'success',
-        title: title,
-        text: text,
-        showConfirmButton: false,
-        timer: timer
-    })
-}
-//sweetAlert 失敗
-function sweetError(title, text) {
-    Swal.fire({
-        icon: 'error',
-        title: title,
-        text: text,
-        showConfirmButton: false,
-        timer: 1500
-    })
-}
-//sweetAlert 資訊
-function sweetInfo(title, timer = 3000) {
-    const Toast = Swal.mixin({
-        toast: true,
-        position: 'top-end',
-        showConfirmButton: false,
-        timer: timer,
-        timerProgressBar: true,
-        didOpen: (toast) => {
-            toast.addEventListener('mouseenter', Swal.stopTimer)
-            toast.addEventListener('mouseleave', Swal.resumeTimer)
-        }
-    })
-
-    Toast.fire({
-        icon: 'info',
-        title: title
-    })
-}
-//檢查localStorage是否過期
-function chkTimer() {
-    var timer = setInterval(function () {
-        console.log("chkTimer check");
-        if (localStorage.getItem('_expire')) {
-            let expireTime = getDataFromLocalStorage('_expire');
-            if (new Date().getTime() - expireTime.time > expireTime.expire) {
-                sweetInfo('登入逾時，請重新登入', 3000);
-                logout()
-                clearInterval(timer);
-            }
-        } else {
-            console.log('帳號已登出，localStorage已失效');
-            clearInterval(timer);
-        }
-    }, 1000);
-}
-
-//gaPurchase
-function gaPurchase(order) {
-    gtag("event", "purchase", {
-        transaction_id: order.id,
-        affiliation: "快取早餐",
-        value: order.price,
-        currency: "TWD",
-        items: order.details.map(item => {
-            let itemObj = {
-                item_id: item.id,
-                item_name: item.name,
-                currency: "TWD",
-                item_category: catIdToCatName(item.catId),
-                price: item.price,
-                quantity: item.qty,
-                item_variant: item.comment,
-            }
-            return itemObj;
-        })
-    });
-}
 //catIdToCatName
 function catIdToCatName(catId) {
     let catName = Object.values(theMenu).find(item => item.id == catId)?.name;
@@ -435,7 +336,7 @@ function login(email, password) {
             });
             saveDataToLocalStorage('_token', response.data.accessToken);
             saveDataToLocalStorage('_user', response.data.user);
-            saveDataToLocalStorage('_expire', { time: new Date().getTime(), expire: 10 * 60 * 1000 });
+            saveDataToLocalStorage('_expire', { time: new Date().getTime(), expire: expireMins * 60 * 1000 });
             chkTimer();
             if (response.data.user.role == 'admin') {
                 deleteDataFromLocalStorage('returnModal');
@@ -493,7 +394,6 @@ function postCartOrder(order) {
         console.log('error', error);
     });
 }
-
 
 //#endregion
 
@@ -785,18 +685,110 @@ function getDataFromLocalStorage(key) {
 function deleteDataFromLocalStorage(key) {
     localStorage.removeItem(key);
 }
-
 // 取得當前時間(2022-01-01 00:00:00)
 function getTimeNow() {
     let d = new Date();
     const theTime = d.getFullYear() + "-" + (d.getMonth() + 1).AddZero() + "-" + d.getDate().AddZero() + " " + d.getHours().AddZero() + ":" + d.getMinutes().AddZero() + ":" + d.getSeconds().AddZero();
     return theTime;
 };
-
 // 小於10的數字補0
 Number.prototype.AddZero = function (b, c) {
     var l = (String(b || 10).length - String(this).length) + 1;
     return l > 0 ? new Array(l).join(c || '0') + this : this;
 };
+//sweetAlert 右上角 小成功
+function sweetSmallSuccess(title, timer = 1500) {
+    const Toast = Swal.mixin({
+        toast: true,
+        position: 'top-end',
+        showConfirmButton: false,
+        timer: timer,
+        timerProgressBar: true,
+        didOpen: (toast) => {
+            toast.addEventListener('mouseenter', Swal.stopTimer)
+            toast.addEventListener('mouseleave', Swal.resumeTimer)
+        }
+    })
 
+    Toast.fire({
+        icon: 'success',
+        title: title
+    })
+}
+//sweetAlert 成功
+function sweetSuccess(title, text, timer = 1500) {
+    Swal.fire({
+        icon: 'success',
+        title: title,
+        text: text,
+        showConfirmButton: false,
+        timer: timer
+    })
+}
+//sweetAlert 失敗
+function sweetError(title, text) {
+    Swal.fire({
+        icon: 'error',
+        title: title,
+        text: text,
+        showConfirmButton: false,
+        timer: 1500
+    })
+}
+//sweetAlert 資訊
+function sweetInfo(title, timer = 3000) {
+    const Toast = Swal.mixin({
+        toast: true,
+        position: 'top-end',
+        showConfirmButton: false,
+        timer: timer,
+        timerProgressBar: true,
+        didOpen: (toast) => {
+            toast.addEventListener('mouseenter', Swal.stopTimer)
+            toast.addEventListener('mouseleave', Swal.resumeTimer)
+        }
+    })
+
+    Toast.fire({
+        icon: 'info',
+        title: title
+    })
+}
+//檢查localStorage是否過期
+function chkTimer() {
+    var timer = setInterval(function () {
+        if (localStorage.getItem('_expire')) {
+            let expireTime = getDataFromLocalStorage('_expire');
+            if (new Date().getTime() - expireTime.time > expireTime.expire) {
+                sweetInfo('登入逾時，請重新登入', 3000);
+                logout()
+                clearInterval(timer);
+            }
+        } else {
+            console.log('帳號已登出，localStorage已失效');
+            clearInterval(timer);
+        }
+    }, 1000);
+}
+//gaPurchase
+function gaPurchase(order) {
+    gtag("event", "purchase", {
+        transaction_id: order.id,
+        affiliation: "快取早餐",
+        value: order.price,
+        currency: "TWD",
+        items: order.details.map(item => {
+            let itemObj = {
+                item_id: item.id,
+                item_name: item.name,
+                currency: "TWD",
+                item_category: catIdToCatName(item.catId),
+                price: item.price,
+                quantity: item.qty,
+                item_variant: item.comment,
+            }
+            return itemObj;
+        })
+    });
+}
 //#endregion

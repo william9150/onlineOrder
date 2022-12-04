@@ -36,10 +36,6 @@ function finishOrder(id) {
     myOrder.isDone = true;
     updateOrder(id, myOrder);
 }
-//前往前台頁面
-function goToIndex() {
-    window.location.href = 'index.html';
-}
 //切換顯示的訂單類型
 function switchOrders(status) {
     renderCustomerOrders(status);
@@ -51,12 +47,12 @@ function logout() {
     deleteDataFromLocalStorage('returnModal');
     goToIndex();
 }
+
 //切換分頁的顯示
 function switchPage(page) {
     $('.page').hide();
     $(`.page.${page}`).show();
 }
-
 //前往產品管理頁面
 function goToProductManagePage() {
     renderProductManageTable();
@@ -67,12 +63,21 @@ function goToCustomerOrdersPage() {
     renderCustomerOrders('notDone');
     switchPage('customerOrders');
 }
+//前往營收分析
+function goToRevenueAnalysisPage() {
+    renderRevenueAnalysis();
+    switchPage('revenueAnalysis');
+}
+//前往前台頁面
+function goToIndex() {
+    window.location.href = 'index.html';
+}
+
 //編輯商品
 function btnEditProduct(id) {
     let myProduct = theProducts.find(x => x.id == id);
     renderProductEditModal(myProduct);
 }
-
 //更新產品
 function btnSaveEditProduct() {
     let id = $("#productEditModal .modal-body").attr('data-id');
@@ -182,7 +187,6 @@ function sweetWarning(title, text) {
 //檢查localStorage是否過期
 function chkTimer() {
     var timer = setInterval(function () {
-        console.log("chkTimer check");
         if (localStorage.getItem('_expire')) {
             let expireTime = getDataFromLocalStorage('_expire');
             if (new Date().getTime() - expireTime.time > expireTime.expire) {
@@ -283,8 +287,6 @@ function getFoodAdditions() {
     axios.get(`${urlDomain}/additions`)
         .then(function (response) {
             theFoodAdditions = response.data;
-            console.log('theFoodAdditions', theFoodAdditions);
-            // renderFoodAddition();
         }).catch(function (error) {
             console.log('error', error);
         });
@@ -368,7 +370,7 @@ function renderNavList() {
         <span class="nav-link finger" onclick="goToProductManagePage()">菜單管理</span>
     </li>
     <li class="nav-item">
-        <span class="nav-link finger" onclick="">營收分析</span>
+        <span class="nav-link finger" onclick="goToRevenueAnalysisPage()">營收分析</span>
     </li>
     <li class="nav-item">
         <span class="nav-link finger" onclick="goToIndex()">切換至前台</span>
@@ -453,6 +455,113 @@ function renderProductManageTable() {
     $("#productManageList").html(contents.join(''));
     // $("#productManage table ").html('abcdddd');
 }
+//渲染營收分析
+function renderRevenueAnalysis() {
+    let allSoldProducts = Object.values(theAllOrders).reduce((a, b) => [...a, ...b.details], [])
+    let catAnalysisPrice = []
+    let catAnalysisCount = []
+    theCats.forEach(cat => {
+        let soldProducts = allSoldProducts.filter(x => x.catId == cat.id);
+        let soldCount = soldProducts.length;
+        let soldPrice = soldProducts.reduce((a, b) => a + b.price, 0);
+        catAnalysisPrice.push([cat.name, soldPrice])
+        catAnalysisCount.push([cat.name, soldCount])
+    })
+    var chart2 = c3.generate({
+        bindto: "#chart2", // 綁定的 HTML 元素
+        data: {
+            columns: catAnalysisCount,
+            type: 'donut',
+        },
+        donut: {
+            title: "銷售數量"
+        },
+        size: {
+            width: 350,
+        }
+    });
+    var chart3 = c3.generate({
+        bindto: "#chart3", // 綁定的 HTML 元素
+        data: {
+            columns: catAnalysisPrice,
+            type: 'donut',
+        },
+        donut: {
+            title: "銷售金額"
+        },
+        size: {
+            width: 350,
+        }
+    });
+    let productMenu = ["品項"];
+    let productAnalysisPrice = ["金額"];
+    let productAnalysisCount = ["銷量"];
+    theMenu.forEach(menu => {
+        menu.products.forEach(product => {
+            let soldProducts = allSoldProducts.filter(x => x.id == product.id);
+            let soldCount = soldProducts.length;
+            let soldPrice = soldProducts.reduce((a, b) => a + b.price, 0);
+            // productMenu.push([product.name, soldCount, soldPrice])
+            if (soldCount > 0) {
+                productMenu.push(product.name);
+                productAnalysisPrice.push(soldPrice)
+                productAnalysisCount.push(soldCount)
+            }
+        })
+    })
+
+    let q1 = [productMenu, productAnalysisCount, productAnalysisPrice];
+
+    var chart1 = c3.generate({
+        bindto: "#chart1", // 綁定的 HTML 元素
+        data: {
+            x: "品項",
+            columns: q1,
+            axes: {
+                "銷量": "y",
+                "金額": "y2"
+            },
+            type: 'bar',
+            selection: {
+                enabled: true,
+                grouped: true
+            },
+            labels: {
+                format: {
+                    "金額": d3.format("$"),
+                    "銷量": d3.format(",")
+                }
+            },
+            order: 'asc'
+        },
+        bar: {
+            width: {
+                ratio: 0.85 // this makes bar width 50% of length between ticks
+            }
+            // or
+            //width: 100 // this makes bar width 100px
+        },
+        axis: {
+            x: { type: 'category' },
+            y: {
+                label: {
+                    text: 'Count',
+                    position: 'outer-middle'
+                }
+            },
+            y2: {
+                show: true,
+                tick: {
+                    format: d3.format("$")
+                },
+                label: {
+                    text: 'Price',
+                    position: 'outer-middle'
+                }
+            }
+        },
+    });
+}
 //渲染產品編輯Modal
 function renderProductEditModal(model) {
     let additionContents = theFoodAdditions.map(addition => {
@@ -474,7 +583,6 @@ function renderProductEditModal(model) {
     $("#productEditModal .modal-footer button").attr('onclick', `${model?.id ? 'btnSaveProduct()' : 'btnSaveNewProduct()'}`);
     $("#productEditModal").modal("show")
 }
-
 //#endregion
 
 //#region ---------- 其他 ----------
@@ -491,5 +599,4 @@ function getDataFromLocalStorage(key) {
 function deleteDataFromLocalStorage(key) {
     localStorage.removeItem(key);
 }
-
 //#endregion
