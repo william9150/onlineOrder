@@ -597,7 +597,7 @@ function renderProductEditModal(model) {
     $(`#productEditModal .modal-body input[name='isSoldOut']`).prop('checked', false);
     $(`#productEditModal .modal-body input[name='isSoldOut'][value='${model.isSoldOut}']`).prop('checked', true);
     $("#productEditModal .modal-body input[name='price']").val(model.price);
-    $("#productEditModal .modal-footer button").attr('onclick', `${model?.id ? 'btnSaveProduct()' : 'btnSaveNewProduct()'}`);
+    $("#productEditModal .modal-footer button").attr('onclick', `${model?.id ? 'btnSaveEditProduct()' : 'btnSaveNewProduct()'}`);
     $("#productEditModal").modal("show")
 }
 //#endregion
