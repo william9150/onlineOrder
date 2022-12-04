@@ -309,8 +309,6 @@ function getFoodAddition() {
     axios.get(`${urlDomain}/additions`)
         .then(function (response) {
             theFoodAdditions = response.data;
-            console.log('theFoodAdditions', theFoodAdditions);
-            // renderFoodAddition();
         }).catch(function (error) {
             console.log('error', error);
         });

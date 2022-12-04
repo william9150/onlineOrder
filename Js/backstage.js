@@ -513,8 +513,6 @@ function renderSingleProductAnalysis(catOption = 'all') {
     let productAnalysisPrice = ["金額"];
     let productAnalysisCount = ["銷量"];
     theMenu.forEach(menu => {
-        console.log("catOption", catOption);
-        console.log("menu.catId", menu.id);
         if (catOption == 'all' || menu.id == catOption) {
             menu.products.forEach(product => {
                 let soldProducts = allSoldProducts.filter(x => x.id == product.id);
