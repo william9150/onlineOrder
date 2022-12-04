@@ -340,6 +340,50 @@ function sweetInfo(title, timer = 3000) {
         title: title
     })
 }
+//檢查localStorage是否過期
+function chkTimer() {
+    var timer = setInterval(function () {
+        console.log("chkTimer check");
+        if (localStorage.getItem('_expire')) {
+            let expireTime = getDataFromLocalStorage('_expire');
+            if (new Date().getTime() - expireTime.time > expireTime.expire) {
+                sweetInfo('登入逾時，請重新登入', 3000);
+                logout()
+                clearInterval(timer);
+            }
+        } else {
+            console.log('帳號已登出，localStorage已失效');
+            clearInterval(timer);
+        }
+    }, 1000);
+}
+
+//gaPurchase
+function gaPurchase(order) {
+    gtag("event", "purchase", {
+        transaction_id: order.id,
+        affiliation: "快取早餐",
+        value: order.price,
+        currency: "TWD",
+        items: order.details.map(item => {
+            let itemObj = {
+                item_id: item.id,
+                item_name: item.name,
+                currency: "TWD",
+                item_category: catIdToCatName(item.catId),
+                price: item.price,
+                quantity: item.qty,
+                item_variant: item.comment,
+            }
+            return itemObj;
+        })
+    });
+}
+//catIdToCatName
+function catIdToCatName(catId) {
+    let catName = Object.values(theMenu).find(item => item.id == catId)?.name;
+    return catName ? catName : '';
+}
 //#endregion
 
 
@@ -386,6 +430,9 @@ function getUserOrders() {
 function login(email, password) {
     axios.post(`${urlDomain}/login`, { email: email, password: password })
         .then(function (response) {
+            gtag("event", "login", {
+                method: "login:" + `(${email})(${response.data.user.name})`
+            });
             saveDataToLocalStorage('_token', response.data.accessToken);
             saveDataToLocalStorage('_user', response.data.user);
             saveDataToLocalStorage('_expire', { time: new Date().getTime(), expire: 10 * 60 * 1000 });
@@ -413,10 +460,11 @@ function logout() {
 }
 //register
 function register(model) {
-
     axios.post(`${urlDomain}/register`, model)
         .then(function (response) {
-            console.log(response);
+            gtag("event", "sign_up", {
+                method: "sign_up:" + `(${model.name})(${model.email})`
+            });
             saveDataToLocalStorage('_token', response.data.accessToken);
             saveDataToLocalStorage('_user', response.data.user);
             $('#loginModal').modal('hide');
@@ -435,7 +483,7 @@ function postCartOrder(order) {
             Authorization: `Bearer ${token}`
         }
     }).then(function (response) {
-        console.log(response);
+        gaPurchase(order);
         sweetSuccess('訂單送出成功', '將盡快為您備餐', 2500);
         switchModal();
         deleteDataFromLocalStorage('cart');
@@ -444,23 +492,6 @@ function postCartOrder(order) {
         sweetError('訂單送出失敗', '請重新嘗試');
         console.log('error', error);
     });
-}
-//檢查localStorage是否過期
-function chkTimer() {
-    var timer = setInterval(function () {
-        console.log("chkTimer check");
-        if (localStorage.getItem('_expire')) {
-            let expireTime = getDataFromLocalStorage('_expire');
-            if (new Date().getTime() - expireTime.time > expireTime.expire) {
-                sweetInfo('登入逾時，請重新登入', 3000);
-                logout()
-                clearInterval(timer);
-            }
-        } else {
-            console.log('帳號已登出，localStorage已失效');
-            clearInterval(timer);
-        }
-    }, 1000);
 }
 
 
