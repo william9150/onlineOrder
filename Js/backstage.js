@@ -493,15 +493,15 @@ function renderRevenueAnalysis() {
             width: 350,
         }
     });
+
     let productMenu = ["品項"];
     let productAnalysisPrice = ["金額"];
     let productAnalysisCount = ["銷量"];
     theMenu.forEach(menu => {
         menu.products.forEach(product => {
             let soldProducts = allSoldProducts.filter(x => x.id == product.id);
-            let soldCount = soldProducts.length;
-            let soldPrice = soldProducts.reduce((a, b) => a + b.price, 0);
-            // productMenu.push([product.name, soldCount, soldPrice])
+            let soldCount = soldProducts.reduce((a, b) => a + b.qty, 0);
+            let soldPrice = soldProducts.reduce((a, b) => a + (b.price * b.qty), 0);
             if (soldCount > 0) {
                 productMenu.push(product.name);
                 productAnalysisPrice.push(soldPrice)
