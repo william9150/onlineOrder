@@ -15,6 +15,10 @@ $(function () {
         window.location.href = 'index.html';
     }
     init();
+    $("#selectCat").on('change', function () {
+        let catId = $(this).val();
+        renderSingleProductAnalysis(catId);
+    });
 })
 //#region ---------- 邏輯流程 ----------
 
@@ -457,13 +461,17 @@ function renderProductManageTable() {
 }
 //渲染營收分析
 function renderRevenueAnalysis() {
+    let selectOptions = [`<option value="all">全品項</option>`];
+    theCats.forEach(cat => selectOptions.push(`<option value="${cat.id}">${cat.name}</option>`));
+    $("#selectCat").html(selectOptions.join(""));
+    renderSingleProductAnalysis('all');
     let allSoldProducts = Object.values(theAllOrders).reduce((a, b) => [...a, ...b.details], [])
     let catAnalysisPrice = []
     let catAnalysisCount = []
     theCats.forEach(cat => {
         let soldProducts = allSoldProducts.filter(x => x.catId == cat.id);
-        let soldCount = soldProducts.length;
-        let soldPrice = soldProducts.reduce((a, b) => a + b.price, 0);
+        let soldCount = soldProducts.reduce((a, b) => a + b.qty, 0);
+        let soldPrice = soldProducts.reduce((a, b) => a + (b.price * b.qty), 0);
         catAnalysisPrice.push([cat.name, soldPrice])
         catAnalysisCount.push([cat.name, soldCount])
     })
@@ -493,21 +501,28 @@ function renderRevenueAnalysis() {
             width: 350,
         }
     });
-
+}
+//渲染單品銷售概況(sort by cat)(chart1)
+function renderSingleProductAnalysis(catOption = 'all') {
+    let allSoldProducts = Object.values(theAllOrders).reduce((a, b) => [...a, ...b.details], [])
     let productMenu = ["品項"];
     let productAnalysisPrice = ["金額"];
     let productAnalysisCount = ["銷量"];
     theMenu.forEach(menu => {
-        menu.products.forEach(product => {
-            let soldProducts = allSoldProducts.filter(x => x.id == product.id);
-            let soldCount = soldProducts.reduce((a, b) => a + b.qty, 0);
-            let soldPrice = soldProducts.reduce((a, b) => a + (b.price * b.qty), 0);
-            if (soldCount > 0) {
-                productMenu.push(product.name);
-                productAnalysisPrice.push(soldPrice)
-                productAnalysisCount.push(soldCount)
-            }
-        })
+        console.log("catOption", catOption);
+        console.log("menu.catId", menu.id);
+        if (catOption == 'all' || menu.id == catOption) {
+            menu.products.forEach(product => {
+                let soldProducts = allSoldProducts.filter(x => x.id == product.id);
+                let soldCount = soldProducts.reduce((a, b) => a + b.qty, 0);
+                let soldPrice = soldProducts.reduce((a, b) => a + (b.price * b.qty), 0);
+                if (catOption != 'all' || soldCount > 0) {
+                    productMenu.push(product.name);
+                    productAnalysisPrice.push(soldPrice)
+                    productAnalysisCount.push(soldCount)
+                }
+            })
+        }
     })
 
     let q1 = [productMenu, productAnalysisCount, productAnalysisPrice];
@@ -538,8 +553,6 @@ function renderRevenueAnalysis() {
             width: {
                 ratio: 0.85 // this makes bar width 50% of length between ticks
             }
-            // or
-            //width: 100 // this makes bar width 100px
         },
         axis: {
             x: { type: 'category' },
