@@ -359,7 +359,7 @@ function login(email, password) {
                 return;
             }
             if (response.data.user.role == 'insider') {
-                window.location.href = window.location.origin;
+                window.location.href = window.location.origin + window.location.pathname;
                 return;
             }
 
@@ -369,7 +369,7 @@ function login(email, password) {
             if (response.data.user.role == 'insider') {
                 sweetSmallSuccess(`桌號 ${response.data.user.name}，歡迎光臨`);
             } else {
-                sweetSmallSuccess('登入成功');
+                sweetSmallSuccess(`早安😀 ${response.data.user.name}，登入成功`);
             }
 
         }).catch(function (error) {
