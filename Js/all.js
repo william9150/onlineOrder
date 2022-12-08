@@ -10,6 +10,7 @@ const urlDomain = 'https://json-server-vercel-a.vercel.app';
 //#endregion
 
 $(function () {
+
     init();
     //監聽分類標籤
     $('input[name="分類標籤"]').on('change', filterMenu);
@@ -26,6 +27,13 @@ $(function () {
 //#region ------------------------------ 邏輯流程 ------------------------------
 //初始化
 function init() {
+    //檢查網址參數
+    const urlParams = new URLSearchParams(window.location.search);
+    const isInsider = urlParams.has('insider');
+    if (isInsider) {
+        login('A3@store.com', 'abc123');
+        return;
+    }
     //檢查登入狀態
     if (getDataFromLocalStorage('_user')) {
         chkTimer();
@@ -33,6 +41,7 @@ function init() {
     getMenu();
     getFoodAddition();
     renderNavList();
+    renderQrCode();
     updateFooterTotalPrice();
     gtag('event', 'screen_view', {
         'app_name': '快取早餐',
@@ -65,6 +74,10 @@ function showLoginModal() {
 //彈出廣告Modal
 function showAdModal() {
     $('#adModal').modal('show');
+}
+//彈出導覽Modal
+function showGuideModal() {
+    $('#guideModal').modal('show');
 }
 //篩選菜單
 function filterMenu() {
@@ -345,10 +358,20 @@ function login(email, password) {
                 window.location.href = 'backstage.html';
                 return;
             }
+            if (response.data.user.role == 'insider') {
+                window.location.href = window.location.origin;
+                return;
+            }
+
             $('#loginModal').modal('hide');
             renderNavList();
             switchModal();
-            sweetSmallSuccess('登入成功');
+            if (response.data.user.role == 'insider') {
+                sweetSmallSuccess(`桌號 ${response.data.user.name}，歡迎光臨`);
+            } else {
+                sweetSmallSuccess('登入成功');
+            }
+
         }).catch(function (error) {
             sweetError('登入失敗', '帳號或密碼錯誤');
         });
@@ -607,9 +630,10 @@ function renderNavList() {
     let userNameContent = "";
     let loginoutContent = `<span class="nav-link finger" href="" onclick="showLoginModal('login')">登入/註冊</span>`;
     if (isLogin) {
+        let helloStr = getDataFromLocalStorage('_user').role == 'insider' ? '桌號 ' : '早安!';
         userNameContent = `
         <li class="nav-item" id="navLoginArea">
-            <span class="nav-link" href="" id="">早安!  <b>${getDataFromLocalStorage('_user').name}</b></span>
+            <span class="nav-link" href="" id="">${helloStr}  <b>${getDataFromLocalStorage('_user').name}</b></span>
         </li>
         ` ;
         loginoutContent = `<span class="nav-link finger" href="" onclick=
@@ -620,6 +644,9 @@ function renderNavList() {
     ${userNameContent}
     <li class="nav-item">
         <span class="nav-link finger" onclick="showAdModal()">活動快訊</span>
+    </li>
+    <li class="nav-item">
+        <span class="nav-link finger" onclick="showGuideModal()">功能介紹</span>
     </li>
     <li class="nav-item">
         ${isLogin ? '<span class="nav-link finger" onclick="showUserOrderModal()">訂單查詢</span>' : ''}
@@ -669,6 +696,15 @@ function renderLoginModal(method = 'login') {
     }
     $("#loginModal .modal-body").html(content);
     //$('#loginModal').modal('show');
+}
+//渲染qr code
+function renderQrCode() {
+
+    // let str = window.location.href + "?insider=A3"
+
+    let str = window.location.origin + "?insider=A3"
+    $("#qrCode").qrcode({ width: 135, height: 135, text: str });
+    $("#qrCode").attr('onclick', `window.open('${str}', '_self')`)
 }
 
 //#endregion
