@@ -4,7 +4,6 @@ const urlParams = new URLSearchParams(window.location.search);
 const isInsider = urlParams.has('insider');
 if (isInsider) {
     login('A3@store.com', 'abc123');
-    return;
 } else {
     window.location.href = indexUrl
 }
