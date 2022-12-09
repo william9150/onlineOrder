@@ -247,7 +247,12 @@ function demoInput(demoName) {
             break;
     }
 }
-
+//從導覽Modal跳轉到登入Modal
+function goToLoginModalWithName(demoName) {
+    $('#guideModal').modal('hide');
+    showLoginModal();
+    demoInput(demoName);
+}
 //check login info
 function btnLogin(callbackModal = "") {
     const email = $("#loginEmail").val();
