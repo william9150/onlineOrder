@@ -228,6 +228,9 @@ function editCartProduct(productId, productIndex) {
     $('#tempProductTotal').text(`${productObj.price * productObj.qty}`);
     $('#btnAddToCart').attr('onclick', `updateToCart(${productIndex})`);
     $('#productModal').modal('show');
+    productObj.additems.forEach(additem => {
+        $(`#foodAdditionOptions input[value=${additem}]`).prop('checked', true);
+    })
 
 }
 //demo Input 填入
