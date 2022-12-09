@@ -1,4 +1,7 @@
 //檢查網址參數
+const expireMins = 30; //登入過期時間(分鐘)
+// const urlDomain = 'http://localhost:3000';
+const urlDomain = 'https://json-server-vercel-a.vercel.app';
 const indexUrl = 'https://coldingpotato.github.io/onlineOrder';
 const urlParams = new URLSearchParams(window.location.search);
 const isInsider = urlParams.has('insider');
