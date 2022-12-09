@@ -702,7 +702,8 @@ function renderQrCode() {
 
     // let str = "https://coldingpotato.github.io/onlineOrder/" + "?insider=A3"
 
-    let str = window.location.origin + window.location.pathname + "?insider=A3"
+    //let str = window.location.origin + window.location.pathname + "?insider=A3"
+    let str = "https://coldingpotato.github.io/onlineOrder/redirect.html?insider=A3"
     $("#qrCode").qrcode({ width: 135, height: 135, text: str });
     $("#qrCode").attr('onclick', `window.open('${str}', '_self')`)
 }
