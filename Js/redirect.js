@@ -20,12 +20,17 @@ function login(email, password) {
             saveDataToLocalStorage('_token', response.data.accessToken);
             saveDataToLocalStorage('_user', response.data.user);
             saveDataToLocalStorage('_expire', { time: new Date().getTime(), expire: expireMins * 60 * 1000 });
-
             if (response.data.user.role == 'insider') {
                 window.location.href = indexUrl
+                console.log('check point B')
                 return;
             }
         }).catch(function (error) {
             console.log('無此內用桌號', error);
         });
+}
+
+//save data in local storage
+function saveDataToLocalStorage(key, data) {
+    localStorage.setItem(key, JSON.stringify(data));
 }
