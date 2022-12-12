@@ -34,3 +34,5 @@ Demo link: https://coldingpotato.github.io/onlineOrder/
 
 ### 伺服器架設
 - vercel
+
+Repo: [json-server-auth on vercel](https://github.com/ColdingPoTaTo/json-server-vercel)
